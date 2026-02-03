@@ -1,0 +1,256 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.1, pytest-9.0.2, pluggy-1.6.0 -- /Library/Frameworks/Python.framework/Versions/3.14/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/yusufjacobs/Documents/tork-governance/landing/packages/sdk-python
+configfile: pyproject.toml
+plugins: anyio-4.12.0, asyncio-1.3.0, locust-2.43.1, cov-7.0.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 110 items
+
+tests/test_ai_adapters_full.py::TestLangChainAdapter::test_import_callback_handler PASSED [  0%]
+tests/test_ai_adapters_full.py::TestLangChainAdapter::test_import_governed_chain PASSED [  1%]
+tests/test_ai_adapters_full.py::TestLangChainAdapter::test_import_create_governed_chain PASSED [  2%]
+tests/test_ai_adapters_full.py::TestLangChainAdapter::test_callback_handler_instantiation PASSED [  3%]
+tests/test_ai_adapters_full.py::TestLangChainAdapter::test_callback_handler_ssn_redaction PASSED [  4%]
+tests/test_ai_adapters_full.py::TestLangChainAdapter::test_callback_handler_email_redaction PASSED [  5%]
+tests/test_ai_adapters_full.py::TestLangChainAdapter::test_callback_handler_clean_passthrough PASSED [  6%]
+tests/test_ai_adapters_full.py::TestLangChainAdapter::test_governed_chain_instantiation FAILED [  7%]
+tests/test_ai_adapters_full.py::TestLangChainAdapter::test_governed_chain_govern_input FAILED [  8%]
+tests/test_ai_adapters_full.py::TestCrewAIAdapter::test_import_middleware PASSED [  9%]
+tests/test_ai_adapters_full.py::TestCrewAIAdapter::test_import_governed_agent PASSED [ 10%]
+tests/test_ai_adapters_full.py::TestCrewAIAdapter::test_import_governed_crew PASSED [ 10%]
+tests/test_ai_adapters_full.py::TestCrewAIAdapter::test_middleware_instantiation PASSED [ 11%]
+tests/test_ai_adapters_full.py::TestCrewAIAdapter::test_middleware_ssn_redaction FAILED [ 12%]
+tests/test_ai_adapters_full.py::TestCrewAIAdapter::test_middleware_email_redaction FAILED [ 13%]
+tests/test_ai_adapters_full.py::TestCrewAIAdapter::test_middleware_clean_passthrough FAILED [ 14%]
+tests/test_ai_adapters_full.py::TestAutoGenAdapter::test_import_middleware PASSED [ 15%]
+tests/test_ai_adapters_full.py::TestAutoGenAdapter::test_import_governed_agent PASSED [ 16%]
+tests/test_ai_adapters_full.py::TestAutoGenAdapter::test_middleware_instantiation PASSED [ 17%]
+tests/test_ai_adapters_full.py::TestAutoGenAdapter::test_middleware_ssn_redaction FAILED [ 18%]
+tests/test_ai_adapters_full.py::TestAutoGenAdapter::test_middleware_email_redaction FAILED [ 19%]
+tests/test_ai_adapters_full.py::TestOpenAIAgentsAdapter::test_import_middleware PASSED [ 20%]
+tests/test_ai_adapters_full.py::TestOpenAIAgentsAdapter::test_import_governed_agent PASSED [ 20%]
+tests/test_ai_adapters_full.py::TestOpenAIAgentsAdapter::test_middleware_instantiation PASSED [ 21%]
+tests/test_ai_adapters_full.py::TestMCPAdapter::test_import_tool_wrapper PASSED [ 22%]
+tests/test_ai_adapters_full.py::TestMCPAdapter::test_import_server PASSED [ 23%]
+tests/test_ai_adapters_full.py::TestMCPAdapter::test_import_middleware PASSED [ 24%]
+tests/test_ai_adapters_full.py::TestMCPAdapter::test_tool_wrapper_instantiation PASSED [ 25%]
+tests/test_ai_adapters_full.py::TestMCPAdapter::test_tool_wrapper_ssn_redaction FAILED [ 26%]
+tests/test_ai_adapters_full.py::TestLlamaIndexAdapter::test_import_callback PASSED [ 27%]
+tests/test_ai_adapters_full.py::TestLlamaIndexAdapter::test_import_query_engine PASSED [ 28%]
+tests/test_ai_adapters_full.py::TestLlamaIndexAdapter::test_import_retriever PASSED [ 29%]
+tests/test_ai_adapters_full.py::TestLlamaIndexAdapter::test_callback_instantiation PASSED [ 30%]
+tests/test_ai_adapters_full.py::TestLlamaIndexAdapter::test_callback_query_governance FAILED [ 30%]
+tests/test_ai_adapters_full.py::TestSemanticKernelAdapter::test_import_filter PASSED [ 31%]
+tests/test_ai_adapters_full.py::TestSemanticKernelAdapter::test_import_plugin PASSED [ 32%]
+tests/test_ai_adapters_full.py::TestSemanticKernelAdapter::test_import_prompt_filter PASSED [ 33%]
+tests/test_ai_adapters_full.py::TestSemanticKernelAdapter::test_filter_instantiation PASSED [ 34%]
+tests/test_ai_adapters_full.py::TestHaystackAdapter::test_import_component PASSED [ 35%]
+tests/test_ai_adapters_full.py::TestHaystackAdapter::test_import_pipeline PASSED [ 36%]
+tests/test_ai_adapters_full.py::TestHaystackAdapter::test_import_document_processor PASSED [ 37%]
+tests/test_ai_adapters_full.py::TestHaystackAdapter::test_component_instantiation PASSED [ 38%]
+tests/test_ai_adapters_full.py::TestHaystackAdapter::test_component_run FAILED [ 39%]
+tests/test_ai_adapters_full.py::TestPydanticAIAdapter::test_import_middleware PASSED [ 40%]
+tests/test_ai_adapters_full.py::TestPydanticAIAdapter::test_import_tool PASSED [ 40%]
+tests/test_ai_adapters_full.py::TestPydanticAIAdapter::test_import_dependency PASSED [ 41%]
+tests/test_ai_adapters_full.py::TestPydanticAIAdapter::test_middleware_instantiation PASSED [ 42%]
+tests/test_ai_adapters_full.py::TestDSPyAdapter::test_import_module PASSED [ 43%]
+tests/test_ai_adapters_full.py::TestDSPyAdapter::test_import_signature PASSED [ 44%]
+tests/test_ai_adapters_full.py::TestDSPyAdapter::test_import_decorator PASSED [ 45%]
+tests/test_ai_adapters_full.py::TestDSPyAdapter::test_module_instantiation FAILED [ 46%]
+tests/test_ai_adapters_full.py::TestInstructorAdapter::test_import_client PASSED [ 47%]
+tests/test_ai_adapters_full.py::TestInstructorAdapter::test_import_patch PASSED [ 48%]
+tests/test_ai_adapters_full.py::TestInstructorAdapter::test_import_decorator PASSED [ 49%]
+tests/test_ai_adapters_full.py::TestInstructorAdapter::test_client_instantiation FAILED [ 50%]
+tests/test_ai_adapters_full.py::TestGuidanceAdapter::test_import_program PASSED [ 50%]
+tests/test_ai_adapters_full.py::TestGuidanceAdapter::test_import_gen PASSED [ 51%]
+tests/test_ai_adapters_full.py::TestGuidanceAdapter::test_import_decorator PASSED [ 52%]
+tests/test_ai_adapters_full.py::TestGuidanceAdapter::test_program_instantiation FAILED [ 53%]
+tests/test_ai_adapters_full.py::TestLMQLAdapter::test_import_query PASSED [ 54%]
+tests/test_ai_adapters_full.py::TestLMQLAdapter::test_import_runtime PASSED [ 55%]
+tests/test_ai_adapters_full.py::TestLMQLAdapter::test_import_decorator PASSED [ 56%]
+tests/test_ai_adapters_full.py::TestLMQLAdapter::test_query_instantiation FAILED [ 57%]
+tests/test_ai_adapters_full.py::TestOutlinesAdapter::test_import_generator PASSED [ 58%]
+tests/test_ai_adapters_full.py::TestOutlinesAdapter::test_import_model PASSED [ 59%]
+tests/test_ai_adapters_full.py::TestOutlinesAdapter::test_import_decorator PASSED [ 60%]
+tests/test_ai_adapters_full.py::TestOutlinesAdapter::test_generator_instantiation FAILED [ 60%]
+tests/test_ai_adapters_full.py::TestMarvinAdapter::test_import_ai PASSED [ 61%]
+tests/test_ai_adapters_full.py::TestMarvinAdapter::test_import_fn_decorator PASSED [ 62%]
+tests/test_ai_adapters_full.py::TestMarvinAdapter::test_import_classifier_decorator PASSED [ 63%]
+tests/test_ai_adapters_full.py::TestMarvinAdapter::test_ai_instantiation PASSED [ 64%]
+tests/test_ai_adapters_full.py::TestSuperAGIAdapter::test_import_agent PASSED [ 65%]
+tests/test_ai_adapters_full.py::TestSuperAGIAdapter::test_import_tool PASSED [ 66%]
+tests/test_ai_adapters_full.py::TestSuperAGIAdapter::test_import_workflow PASSED [ 67%]
+tests/test_ai_adapters_full.py::TestSuperAGIAdapter::test_agent_instantiation FAILED [ 68%]
+tests/test_ai_adapters_full.py::TestMetaGPTAdapter::test_import_role PASSED [ 69%]
+tests/test_ai_adapters_full.py::TestMetaGPTAdapter::test_import_team PASSED [ 70%]
+tests/test_ai_adapters_full.py::TestMetaGPTAdapter::test_import_action PASSED [ 70%]
+tests/test_ai_adapters_full.py::TestMetaGPTAdapter::test_role_instantiation FAILED [ 71%]
+tests/test_ai_adapters_full.py::TestBabyAGIAdapter::test_import_agent PASSED [ 72%]
+tests/test_ai_adapters_full.py::TestBabyAGIAdapter::test_import_task_manager PASSED [ 73%]
+tests/test_ai_adapters_full.py::TestBabyAGIAdapter::test_import_decorator PASSED [ 74%]
+tests/test_ai_adapters_full.py::TestBabyAGIAdapter::test_agent_instantiation FAILED [ 75%]
+tests/test_ai_adapters_full.py::TestAgentGPTAdapter::test_import_agent PASSED [ 76%]
+tests/test_ai_adapters_full.py::TestAgentGPTAdapter::test_import_task PASSED [ 77%]
+tests/test_ai_adapters_full.py::TestAgentGPTAdapter::test_import_goal PASSED [ 78%]
+tests/test_ai_adapters_full.py::TestAgentGPTAdapter::test_agent_instantiation FAILED [ 79%]
+tests/test_ai_adapters_full.py::TestFlowiseAdapter::test_import_node PASSED [ 80%]
+tests/test_ai_adapters_full.py::TestFlowiseAdapter::test_import_flow PASSED [ 80%]
+tests/test_ai_adapters_full.py::TestFlowiseAdapter::test_import_api PASSED [ 81%]
+tests/test_ai_adapters_full.py::TestFlowiseAdapter::test_node_instantiation FAILED [ 82%]
+tests/test_ai_adapters_full.py::TestLangflowAdapter::test_import_component PASSED [ 83%]
+tests/test_ai_adapters_full.py::TestLangflowAdapter::test_import_flow PASSED [ 84%]
+tests/test_ai_adapters_full.py::TestLangflowAdapter::test_import_api PASSED [ 85%]
+tests/test_ai_adapters_full.py::TestLangflowAdapter::test_component_instantiation FAILED [ 86%]
+tests/test_ai_adapters_full.py::TestGuardrailsAIAdapter::test_import_validator PASSED [ 87%]
+tests/test_ai_adapters_full.py::TestGuardrailsAIAdapter::test_import_guard PASSED [ 88%]
+tests/test_ai_adapters_full.py::TestGuardrailsAIAdapter::test_import_rail PASSED [ 89%]
+tests/test_ai_adapters_full.py::TestGuardrailsAIAdapter::test_validator_instantiation PASSED [ 90%]
+tests/test_ai_adapters_full.py::TestGuardrailsAIAdapter::test_validator_ssn_redaction PASSED [ 90%]
+tests/test_ai_adapters_full.py::TestGuardrailsAIAdapter::test_validator_email_redaction PASSED [ 91%]
+tests/test_ai_adapters_full.py::TestGuardrailsAIAdapter::test_guard_instantiation PASSED [ 92%]
+tests/test_ai_adapters_full.py::TestGuardrailsAIAdapter::test_guard_ssn_redaction PASSED [ 93%]
+tests/test_ai_adapters_full.py::TestDifyAdapter::test_import_node PASSED [ 94%]
+tests/test_ai_adapters_full.py::TestDifyAdapter::test_import_hook PASSED [ 95%]
+tests/test_ai_adapters_full.py::TestDifyAdapter::test_import_app PASSED  [ 96%]
+tests/test_ai_adapters_full.py::TestDifyAdapter::test_node_instantiation PASSED [ 97%]
+tests/test_ai_adapters_full.py::TestDifyAdapter::test_node_ssn_redaction PASSED [ 98%]
+tests/test_ai_adapters_full.py::TestDifyAdapter::test_node_email_redaction PASSED [ 99%]
+tests/test_ai_adapters_full.py::TestDifyAdapter::test_hook_instantiation PASSED [100%]
+
+=================================== FAILURES ===================================
+____________ TestLangChainAdapter.test_governed_chain_instantiation ____________
+tests/test_ai_adapters_full.py:88: in test_governed_chain_instantiation
+    chain = TorkGovernedChain()
+            ^^^^^^^^^^^^^^^^^^^
+E   TypeError: TorkGovernedChain.__init__() missing 1 required positional argument: 'chain'
+____________ TestLangChainAdapter.test_governed_chain_govern_input _____________
+tests/test_ai_adapters_full.py:94: in test_governed_chain_govern_input
+    chain = TorkGovernedChain()
+            ^^^^^^^^^^^^^^^^^^^
+E   TypeError: TorkGovernedChain.__init__() missing 1 required positional argument: 'chain'
+_______________ TestCrewAIAdapter.test_middleware_ssn_redaction ________________
+tests/test_ai_adapters_full.py:131: in test_middleware_ssn_redaction
+    result = middleware.govern_input(TEST_INPUTS["ssn"])
+             ^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'TorkCrewAIMiddleware' object has no attribute 'govern_input'
+______________ TestCrewAIAdapter.test_middleware_email_redaction _______________
+tests/test_ai_adapters_full.py:138: in test_middleware_email_redaction
+    result = middleware.govern_input(TEST_INPUTS["email"])
+             ^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'TorkCrewAIMiddleware' object has no attribute 'govern_input'
+_____________ TestCrewAIAdapter.test_middleware_clean_passthrough ______________
+tests/test_ai_adapters_full.py:145: in test_middleware_clean_passthrough
+    result = middleware.govern_input(TEST_INPUTS["clean"])
+             ^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'TorkCrewAIMiddleware' object has no attribute 'govern_input'
+_______________ TestAutoGenAdapter.test_middleware_ssn_redaction _______________
+tests/test_ai_adapters_full.py:176: in test_middleware_ssn_redaction
+    result = middleware.govern_message(TEST_INPUTS["ssn"])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'TorkAutoGenMiddleware' object has no attribute 'govern_message'. Did you mean: 'process_message'?
+______________ TestAutoGenAdapter.test_middleware_email_redaction ______________
+tests/test_ai_adapters_full.py:183: in test_middleware_email_redaction
+    result = middleware.govern_message(TEST_INPUTS["email"])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'TorkAutoGenMiddleware' object has no attribute 'govern_message'. Did you mean: 'process_message'?
+________________ TestMCPAdapter.test_tool_wrapper_ssn_redaction ________________
+tests/test_ai_adapters_full.py:243: in test_tool_wrapper_ssn_redaction
+    result = wrapper.govern_tool_input({"text": TEST_INPUTS["ssn"]})
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'TorkMCPToolWrapper' object has no attribute 'govern_tool_input'
+_____________ TestLlamaIndexAdapter.test_callback_query_governance _____________
+tests/test_ai_adapters_full.py:279: in test_callback_query_governance
+    result = callback.govern_query(TEST_INPUTS["ssn"])
+             ^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'TorkLlamaIndexCallback' object has no attribute 'govern_query'
+____________________ TestHaystackAdapter.test_component_run ____________________
+tests/test_ai_adapters_full.py:345: in test_component_run
+    assert "[SSN_REDACTED]" in result.get("governed_query", "")
+E   AssertionError: assert '[SSN_REDACTED]' in ''
+E    +  where '' = <built-in method get of dict object at 0x10bb1d540>('governed_query', '')
+E    +    where <built-in method get of dict object at 0x10bb1d540> = {'query': 'My SSN is [SSN_REDACTED], please process my request.', 'query_receipt': {'action': 'redact', 'has_pii': True, 'receipt_id': 'rcpt_46b62b8135afaf41326505fbd39552be'}}.get
+__________________ TestDSPyAdapter.test_module_instantiation ___________________
+tests/test_ai_adapters_full.py:402: in test_module_instantiation
+    module = TorkDSPyModule()
+             ^^^^^^^^^^^^^^^^
+E   TypeError: TorkDSPyModule.__init__() missing 1 required positional argument: 'module'
+_______________ TestInstructorAdapter.test_client_instantiation ________________
+tests/test_ai_adapters_full.py:431: in test_client_instantiation
+    client = TorkInstructorClient()
+             ^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: TorkInstructorClient.__init__() missing 1 required positional argument: 'client'
+________________ TestGuidanceAdapter.test_program_instantiation ________________
+tests/test_ai_adapters_full.py:460: in test_program_instantiation
+    program = TorkGuidanceProgram()
+              ^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: TorkGuidanceProgram.__init__() missing 1 required positional argument: 'program'
+___________________ TestLMQLAdapter.test_query_instantiation ___________________
+tests/test_ai_adapters_full.py:489: in test_query_instantiation
+    query = TorkLMQLQuery()
+            ^^^^^^^^^^^^^^^
+E   TypeError: TorkLMQLQuery.__init__() missing 1 required positional argument: 'query'
+_______________ TestOutlinesAdapter.test_generator_instantiation _______________
+tests/test_ai_adapters_full.py:518: in test_generator_instantiation
+    generator = TorkOutlinesGenerator()
+                ^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: TorkOutlinesGenerator.__init__() missing 1 required positional argument: 'generator'
+_________________ TestSuperAGIAdapter.test_agent_instantiation _________________
+tests/test_ai_adapters_full.py:576: in test_agent_instantiation
+    agent = TorkSuperAGIAgent()
+            ^^^^^^^^^^^^^^^^^^^
+E   TypeError: TorkSuperAGIAgent.__init__() missing 1 required positional argument: 'agent'
+__________________ TestMetaGPTAdapter.test_role_instantiation __________________
+tests/test_ai_adapters_full.py:605: in test_role_instantiation
+    role = TorkMetaGPTRole()
+           ^^^^^^^^^^^^^^^^^
+E   TypeError: TorkMetaGPTRole.__init__() missing 1 required positional argument: 'role'
+_________________ TestBabyAGIAdapter.test_agent_instantiation __________________
+tests/test_ai_adapters_full.py:634: in test_agent_instantiation
+    agent = TorkBabyAGIAgent()
+            ^^^^^^^^^^^^^^^^^^
+E   TypeError: TorkBabyAGIAgent.__init__() missing 1 required positional argument: 'agent'
+_________________ TestAgentGPTAdapter.test_agent_instantiation _________________
+tests/test_ai_adapters_full.py:663: in test_agent_instantiation
+    agent = TorkAgentGPTAgent()
+            ^^^^^^^^^^^^^^^^^^^
+E   TypeError: TorkAgentGPTAgent.__init__() missing 1 required positional argument: 'agent'
+__________________ TestFlowiseAdapter.test_node_instantiation __________________
+tests/test_ai_adapters_full.py:692: in test_node_instantiation
+    node = TorkFlowiseNode()
+           ^^^^^^^^^^^^^^^^^
+E   TypeError: TorkFlowiseNode.__init__() missing 1 required positional argument: 'name'
+_______________ TestLangflowAdapter.test_component_instantiation _______________
+tests/test_ai_adapters_full.py:721: in test_component_instantiation
+    component = TorkLangflowComponent()
+                ^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: TorkLangflowComponent.__init__() missing 1 required positional argument: 'component'
+=============================== warnings summary ===============================
+tests/test_ai_adapters_full.py: 10 warnings
+  /Users/yusufjacobs/Documents/tork-governance/landing/packages/sdk-python/tork_governance/core.py:253: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow().isoformat() + 'Z',
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_ai_adapters_full.py::TestLangChainAdapter::test_governed_chain_instantiation
+FAILED tests/test_ai_adapters_full.py::TestLangChainAdapter::test_governed_chain_govern_input
+FAILED tests/test_ai_adapters_full.py::TestCrewAIAdapter::test_middleware_ssn_redaction
+FAILED tests/test_ai_adapters_full.py::TestCrewAIAdapter::test_middleware_email_redaction
+FAILED tests/test_ai_adapters_full.py::TestCrewAIAdapter::test_middleware_clean_passthrough
+FAILED tests/test_ai_adapters_full.py::TestAutoGenAdapter::test_middleware_ssn_redaction
+FAILED tests/test_ai_adapters_full.py::TestAutoGenAdapter::test_middleware_email_redaction
+FAILED tests/test_ai_adapters_full.py::TestMCPAdapter::test_tool_wrapper_ssn_redaction
+FAILED tests/test_ai_adapters_full.py::TestLlamaIndexAdapter::test_callback_query_governance
+FAILED tests/test_ai_adapters_full.py::TestHaystackAdapter::test_component_run
+FAILED tests/test_ai_adapters_full.py::TestDSPyAdapter::test_module_instantiation
+FAILED tests/test_ai_adapters_full.py::TestInstructorAdapter::test_client_instantiation
+FAILED tests/test_ai_adapters_full.py::TestGuidanceAdapter::test_program_instantiation
+FAILED tests/test_ai_adapters_full.py::TestLMQLAdapter::test_query_instantiation
+FAILED tests/test_ai_adapters_full.py::TestOutlinesAdapter::test_generator_instantiation
+FAILED tests/test_ai_adapters_full.py::TestSuperAGIAdapter::test_agent_instantiation
+FAILED tests/test_ai_adapters_full.py::TestMetaGPTAdapter::test_role_instantiation
+FAILED tests/test_ai_adapters_full.py::TestBabyAGIAdapter::test_agent_instantiation
+FAILED tests/test_ai_adapters_full.py::TestAgentGPTAdapter::test_agent_instantiation
+FAILED tests/test_ai_adapters_full.py::TestFlowiseAdapter::test_node_instantiation
+FAILED tests/test_ai_adapters_full.py::TestLangflowAdapter::test_component_instantiation
+================== 21 failed, 89 passed, 10 warnings in 0.21s ==================

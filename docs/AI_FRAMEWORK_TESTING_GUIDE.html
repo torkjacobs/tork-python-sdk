@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Framework Testing Guide - Tork Governance</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --code-bg: #1e1e1e;
+            --code-text: #d4d4d4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-800);
+            line-height: 1.7;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Stats Banner */
+        .stats-banner {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        /* Table of Contents */
+        .toc {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .toc h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: var(--gray-900);
+        }
+
+        .toc ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .toc a {
+            color: var(--primary);
+            text-decoration: none;
+            padding: 0.5rem 0;
+            display: block;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--primary-dark);
+        }
+
+        /* Sections */
+        .section {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: var(--gray-100);
+            padding: 1.5rem 2rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+
+        .section-header:hover {
+            background: var(--gray-200);
+        }
+
+        .section-header h2 {
+            font-size: 1.5rem;
+            color: var(--gray-900);
+            margin: 0;
+        }
+
+        .section-header .toggle {
+            font-size: 1.5rem;
+            color: var(--gray-500);
+            transition: transform 0.3s;
+        }
+
+        .section.collapsed .section-header .toggle {
+            transform: rotate(-90deg);
+        }
+
+        .section-content {
+            padding: 2rem;
+            display: block;
+        }
+
+        .section.collapsed .section-content {
+            display: none;
+        }
+
+        /* Typography */
+        h3 {
+            font-size: 1.25rem;
+            color: var(--gray-900);
+            margin: 2rem 0 1rem;
+        }
+
+        h3:first-child {
+            margin-top: 0;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            color: var(--gray-700);
+        }
+
+        /* Code Blocks */
+        pre {
+            background: var(--code-bg);
+            color: var(--code-text);
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+
+        code {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+        }
+
+        p code, li code {
+            background: var(--gray-100);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            color: var(--primary-dark);
+        }
+
+        /* Syntax Highlighting */
+        .keyword { color: #569cd6; }
+        .string { color: #ce9178; }
+        .comment { color: #6a9955; }
+        .function { color: #dcdcaa; }
+        .class { color: #4ec9b0; }
+        .decorator { color: #c586c0; }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        th {
+            background: var(--gray-100);
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        tr:hover {
+            background: var(--gray-50);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-primary {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        /* Lists */
+        ul, ol {
+            margin: 1rem 0 1rem 1.5rem;
+            color: var(--gray-700);
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Info Boxes */
+        .info-box {
+            background: #eff6ff;
+            border-left: 4px solid var(--primary);
+            padding: 1rem 1.5rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1.5rem 0;
+        }
+
+        .info-box.warning {
+            background: #fffbeb;
+            border-color: var(--warning);
+        }
+
+        .info-box.success {
+            background: #ecfdf5;
+            border-color: var(--success);
+        }
+
+        /* Command Reference */
+        .command-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .command-card {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .command-card code {
+            display: block;
+            background: var(--code-bg);
+            color: var(--code-text);
+            padding: 0.75rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+
+        .command-card .description {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        /* Framework Grid */
+        .framework-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .framework-card {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .framework-card .name {
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .framework-card .tests {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--gray-500);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            header {
+                padding: 2rem 1rem;
+            }
+
+            header h1 {
+                font-size: 1.75rem;
+            }
+
+            .stats-banner {
+                gap: 1.5rem;
+            }
+
+            .stat-value {
+                font-size: 2rem;
+            }
+
+            .section-content {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>AI Framework Testing Guide</h1>
+        <p>Comprehensive guide to testing Tork Governance across 21 AI frameworks</p>
+        <div class="stats-banner">
+            <div class="stat">
+                <div class="stat-value">21</div>
+                <div class="stat-label">Frameworks</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">812</div>
+                <div class="stat-label">Tests</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">100%</div>
+                <div class="stat-label">Pass Rate</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">10</div>
+                <div class="stat-label">Categories</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Table of Contents -->
+        <nav class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#overview">1. Overview</a></li>
+                <li><a href="#test-categories">2. Test Categories Explained</a></li>
+                <li><a href="#pii-data">3. PII Test Data Used</a></li>
+                <li><a href="#run-tests">4. How to Run Tests</a></li>
+                <li><a href="#replicate">5. How to Replicate a Test</a></li>
+                <li><a href="#add-tests">6. Adding Tests for New Frameworks</a></li>
+                <li><a href="#coverage">7. Framework Coverage Table</a></li>
+                <li><a href="#cicd">8. CI/CD Integration</a></li>
+            </ul>
+        </nav>
+
+        <!-- Section 1: Overview -->
+        <section class="section" id="overview">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2>1. Overview</h2>
+                <span class="toggle">&#9660;</span>
+            </div>
+            <div class="section-content">
+                <h3>What the Test Suite Covers</h3>
+                <p>The Tork Governance AI Framework Test Suite provides comprehensive validation of governance functionality across 21 major AI and LLM frameworks. Each adapter is tested to ensure:</p>
+                <ul>
+                    <li><strong>PII Detection</strong>: Automatically identifies sensitive data (emails, phone numbers, SSNs, credit cards)</li>
+                    <li><strong>PII Redaction</strong>: Replaces detected PII with standardized redaction tokens</li>
+                    <li><strong>Compliance Receipts</strong>: Generates audit-ready receipts for every governance action</li>
+                    <li><strong>Error Handling</strong>: Gracefully handles edge cases and malformed inputs</li>
+                    <li><strong>Framework Integration</strong>: Works seamlessly with each framework's unique patterns</li>
+                </ul>
+
+                <h3>Why Comprehensive Testing Matters for Governance</h3>
+                <div class="info-box">
+                    <p>Governance in AI systems is critical because:</p>
+                    <ul>
+                        <li><strong>Data Privacy Compliance</strong>: GDPR, CCPA, HIPAA require PII protection</li>
+                        <li><strong>Audit Requirements</strong>: Organizations need proof of governance actions</li>
+                        <li><strong>Consistency</strong>: Same governance rules must apply across all AI frameworks</li>
+                        <li><strong>Trust</strong>: Users and regulators need confidence in AI system behavior</li>
+                    </ul>
+                </div>
+
+                <h3>Total Coverage</h3>
+                <table>
+                    <tr><th>Metric</th><th>Value</th></tr>
+                    <tr><td>Total Frameworks</td><td><span class="badge badge-primary">21</span></td></tr>
+                    <tr><td>Total Tests</td><td><span class="badge badge-primary">812</span></td></tr>
+                    <tr><td>Pass Rate</td><td><span class="badge badge-success">100%</span></td></tr>
+                    <tr><td>Test Categories</td><td><span class="badge badge-primary">10</span></td></tr>
+                </table>
+            </div>
+        </section>
+
+        <!-- Section 2: Test Categories -->
+        <section class="section" id="test-categories">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2>2. Test Categories Explained</h2>
+                <span class="toggle">&#9660;</span>
+            </div>
+            <div class="section-content">
+                <h3>1. Import/Instantiation Tests</h3>
+                <p><strong>What it tests:</strong> Verifies that adapter classes can be imported and instantiated without errors.</p>
+                <p><strong>Why it matters:</strong> Ensures the adapter module is properly structured and all dependencies are correctly configured.</p>
+                <pre><span class="keyword">def</span> <span class="function">test_import_agent</span>(self):
+    <span class="string">"""Test TorkLangChainAgent can be imported."""</span>
+    <span class="keyword">from</span> tork_governance.adapters.langchain <span class="keyword">import</span> TorkLangChainAgent
+    <span class="keyword">assert</span> TorkLangChainAgent <span class="keyword">is not</span> <span class="keyword">None</span>
+
+<span class="keyword">def</span> <span class="function">test_instantiate_agent_default</span>(self):
+    <span class="string">"""Test agent instantiation with defaults."""</span>
+    agent = TorkLangChainAgent()
+    <span class="keyword">assert</span> agent <span class="keyword">is not</span> <span class="keyword">None</span>
+    <span class="keyword">assert</span> agent.tork <span class="keyword">is not</span> <span class="keyword">None</span>
+    <span class="keyword">assert</span> agent.receipts == []</pre>
+
+                <h3>2. Configuration Tests</h3>
+                <p><strong>What it tests:</strong> Validates that adapters can be configured with existing Tork instances or API keys.</p>
+                <p><strong>Why it matters:</strong> Production environments often share a single Tork instance across multiple adapters for consistent policy enforcement.</p>
+                <pre><span class="keyword">def</span> <span class="function">test_agent_with_tork_instance</span>(self, tork_instance):
+    <span class="string">"""Test agent with existing Tork instance."""</span>
+    agent = TorkLangChainAgent(tork=tork_instance)
+    <span class="keyword">assert</span> agent.tork <span class="keyword">is</span> tork_instance</pre>
+
+                <h3>3. PII Detection Tests</h3>
+                <p><strong>What it tests:</strong> Verifies that each type of PII is correctly detected and redacted.</p>
+                <p><strong>Why it matters:</strong> Different PII types require different detection patterns. Missing even one type creates compliance gaps.</p>
+                <pre><span class="keyword">def</span> <span class="function">test_govern_email_pii</span>(self):
+    <span class="string">"""Test email PII is detected and redacted."""</span>
+    agent = TorkLangChainAgent()
+    result = agent.govern(<span class="string">"Contact me at john.doe@example.com"</span>)
+    <span class="keyword">assert</span> <span class="string">"john.doe@example.com"</span> <span class="keyword">not in</span> result
+    <span class="keyword">assert</span> <span class="string">"[EMAIL_REDACTED]"</span> <span class="keyword">in</span> result</pre>
+
+                <h3>4. Error Handling Tests</h3>
+                <p><strong>What it tests:</strong> Ensures adapters gracefully handle edge cases like empty strings, whitespace, and unusual inputs.</p>
+                <p><strong>Why it matters:</strong> Real-world inputs are unpredictable. Robust error handling prevents crashes and data leaks.</p>
+                <pre><span class="keyword">def</span> <span class="function">test_agent_empty_string</span>(self):
+    <span class="string">"""Test agent handles empty string."""</span>
+    agent = TorkLangChainAgent()
+    result = agent.govern(<span class="string">""</span>)
+    <span class="keyword">assert</span> result == <span class="string">""</span></pre>
+
+                <h3>5. Compliance Receipt Tests</h3>
+                <p><strong>What it tests:</strong> Validates that governance actions generate proper audit receipts with required fields.</p>
+                <p><strong>Why it matters:</strong> Receipts provide the audit trail required for compliance reporting and incident investigation.</p>
+                <pre><span class="keyword">def</span> <span class="function">test_agent_invoke_generates_receipt</span>(self):
+    <span class="string">"""Test agent invoke generates receipt."""</span>
+    agent = TorkLangChainAgent(MockAgent())
+    agent.invoke({<span class="string">"input"</span>: <span class="string">"Test input"</span>})
+    <span class="keyword">assert</span> len(agent.receipts) >= <span class="number">1</span>
+    <span class="keyword">assert</span> agent.receipts[<span class="number">0</span>][<span class="string">"type"</span>] == <span class="string">"agent_input"</span>
+    <span class="keyword">assert</span> <span class="string">"receipt_id"</span> <span class="keyword">in</span> agent.receipts[<span class="number">0</span>]</pre>
+
+                <h3>6. Framework-Specific Tests</h3>
+                <p><strong>What it tests:</strong> Validates governance for each framework's unique features and patterns.</p>
+                <p><strong>Why it matters:</strong> Each framework has different abstractions that all need governance.</p>
+                <ul>
+                    <li><strong>LangChain</strong>: Chain execution, agent tools, callbacks</li>
+                    <li><strong>CrewAI</strong>: Crew orchestration, agent tasks, tool usage</li>
+                    <li><strong>AutoGen</strong>: Group chat, multi-agent conversation</li>
+                    <li><strong>OpenAI Agents</strong>: Runner execution, handoffs, tool calls</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Section 3: PII Test Data -->
+        <section class="section" id="pii-data">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2>3. PII Test Data Used</h2>
+                <span class="toggle">&#9660;</span>
+            </div>
+            <div class="section-content">
+                <p>All tests use consistent PII samples defined in <code>test_data.py</code>:</p>
+
+                <h3>Test Samples</h3>
+                <table>
+                    <tr>
+                        <th>PII Type</th>
+                        <th>Sample Value</th>
+                        <th>Redacted Output</th>
+                    </tr>
+                    <tr>
+                        <td>Email</td>
+                        <td><code>john.doe@example.com</code></td>
+                        <td><code>[EMAIL_REDACTED]</code></td>
+                    </tr>
+                    <tr>
+                        <td>Phone (US)</td>
+                        <td><code>(555) 123-4567</code></td>
+                        <td><code>[PHONE_REDACTED]</code></td>
+                    </tr>
+                    <tr>
+                        <td>SSN</td>
+                        <td><code>123-45-6789</code></td>
+                        <td><code>[SSN_REDACTED]</code></td>
+                    </tr>
+                    <tr>
+                        <td>Credit Card</td>
+                        <td><code>4111-1111-1111-1111</code></td>
+                        <td><code>[CARD_REDACTED]</code></td>
+                    </tr>
+                </table>
+
+                <h3>Test Data Code</h3>
+                <pre>PII_SAMPLES = {
+    <span class="string">"email"</span>: <span class="string">"john.doe@example.com"</span>,
+    <span class="string">"phone_us"</span>: <span class="string">"(555) 123-4567"</span>,
+    <span class="string">"ssn"</span>: <span class="string">"123-45-6789"</span>,
+    <span class="string">"credit_card"</span>: <span class="string">"4111111111111111"</span>
+}
+
+PII_MESSAGES = {
+    <span class="string">"email_message"</span>: <span class="string">"Contact me at john.doe@example.com for details"</span>,
+    <span class="string">"phone_message"</span>: <span class="string">"Call me at (555) 123-4567"</span>,
+    <span class="string">"ssn_message"</span>: <span class="string">"My SSN is 123-45-6789"</span>,
+    <span class="string">"credit_card_message"</span>: <span class="string">"Card number: 4111111111111111"</span>
+}</pre>
+            </div>
+        </section>
+
+        <!-- Section 4: How to Run Tests -->
+        <section class="section" id="run-tests">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2>4. How to Run Tests</h2>
+                <span class="toggle">&#9660;</span>
+            </div>
+            <div class="section-content">
+                <h3>Run All AI Framework Tests</h3>
+                <pre><span class="comment"># Basic run</span>
+python3 -m pytest tests/ai_frameworks/ -v
+
+<span class="comment"># With summary</span>
+python3 -m pytest tests/ai_frameworks/ -v --tb=short</pre>
+
+                <h3>Run Specific Framework Tests</h3>
+                <pre><span class="comment"># LangChain only</span>
+python3 -m pytest tests/ai_frameworks/test_langchain_adapter.py -v
+
+<span class="comment"># CrewAI only</span>
+python3 -m pytest tests/ai_frameworks/test_crewai_adapter.py -v
+
+<span class="comment"># Multiple frameworks</span>
+python3 -m pytest tests/ai_frameworks/test_langchain_adapter.py \
+    tests/ai_frameworks/test_crewai_adapter.py -v</pre>
+
+                <h3>Run Specific Test Categories</h3>
+                <pre><span class="comment"># PII detection tests only</span>
+python3 -m pytest tests/ai_frameworks/ -v -k "PIIDetection"
+
+<span class="comment"># Configuration tests only</span>
+python3 -m pytest tests/ai_frameworks/ -v -k "Configuration"
+
+<span class="comment"># Error handling tests only</span>
+python3 -m pytest tests/ai_frameworks/ -v -k "ErrorHandling"</pre>
+
+                <h3>Run with Coverage Report</h3>
+                <pre><span class="comment"># Terminal coverage report</span>
+python3 -m pytest tests/ai_frameworks/ \
+    --cov=tork_governance.adapters \
+    --cov-report=term-missing
+
+<span class="comment"># HTML coverage report</span>
+python3 -m pytest tests/ai_frameworks/ \
+    --cov=tork_governance.adapters \
+    --cov-report=html
+open htmlcov/index.html</pre>
+
+                <h3>Quick Reference Commands</h3>
+                <div class="command-grid">
+                    <div class="command-card">
+                        <code>pytest tests/ai_frameworks/ -v</code>
+                        <div class="description">Run all tests with verbose output</div>
+                    </div>
+                    <div class="command-card">
+                        <code>pytest tests/ai_frameworks/ -k "PII"</code>
+                        <div class="description">Run only PII-related tests</div>
+                    </div>
+                    <div class="command-card">
+                        <code>pytest tests/ai_frameworks/ --collect-only</code>
+                        <div class="description">List all tests without running</div>
+                    </div>
+                    <div class="command-card">
+                        <code>pytest tests/ai_frameworks/ -x</code>
+                        <div class="description">Stop on first failure</div>
+                    </div>
+                    <div class="command-card">
+                        <code>pytest tests/ai_frameworks/ --lf</code>
+                        <div class="description">Run only last failed tests</div>
+                    </div>
+                    <div class="command-card">
+                        <code>pytest tests/ai_frameworks/ --durations=10</code>
+                        <div class="description">Show 10 slowest tests</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: How to Replicate a Test -->
+        <section class="section" id="replicate">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2>5. How to Replicate a Test</h2>
+                <span class="toggle">&#9660;</span>
+            </div>
+            <div class="section-content">
+                <h3>Complete Example: LangChain Agent PII Test</h3>
+                <p>Here's a complete, runnable example from <code>test_langchain_adapter.py</code>:</p>
+                <pre><span class="string">"""
+Test: Email PII Detection in LangChain Agent
+File: tests/ai_frameworks/test_langchain_adapter.py
+"""</span>
+
+<span class="keyword">import</span> pytest
+<span class="keyword">from</span> tork_governance.adapters.langchain <span class="keyword">import</span> TorkLangChainAgent
+
+<span class="comment"># Test data</span>
+PII_SAMPLES = {
+    <span class="string">"email"</span>: <span class="string">"john.doe@example.com"</span>
+}
+
+PII_MESSAGES = {
+    <span class="string">"email_message"</span>: <span class="string">"Contact me at john.doe@example.com for details"</span>
+}
+
+
+<span class="keyword">class</span> <span class="class">TestLangChainPIIDetection</span>:
+    <span class="string">"""Test PII detection and redaction in LangChain adapter."""</span>
+
+    <span class="keyword">def</span> <span class="function">test_govern_email_pii</span>(self):
+        <span class="string">"""Test email PII is detected and redacted."""</span>
+        <span class="comment"># Create adapter instance</span>
+        agent = TorkLangChainAgent()
+
+        <span class="comment"># Govern text containing PII</span>
+        result = agent.govern(PII_MESSAGES[<span class="string">"email_message"</span>])
+
+        <span class="comment"># Verify PII is redacted</span>
+        <span class="keyword">assert</span> PII_SAMPLES[<span class="string">"email"</span>] <span class="keyword">not in</span> result
+        <span class="keyword">assert</span> <span class="string">"[EMAIL_REDACTED]"</span> <span class="keyword">in</span> result
+
+        <span class="comment"># Print for verification</span>
+        print(<span class="string">f"Input:  {PII_MESSAGES['email_message']}"</span>)
+        print(<span class="string">f"Output: {result}"</span>)</pre>
+
+                <h3>Expected Output</h3>
+                <div class="info-box success">
+                    <pre style="margin: 0; background: transparent; padding: 0;">Input:  Contact me at john.doe@example.com for details
+Output: Contact me at [EMAIL_REDACTED] for details</pre>
+                </div>
+
+                <h3>Running This Test</h3>
+                <pre><span class="comment"># Run just this test</span>
+python3 -m pytest tests/ai_frameworks/test_langchain_adapter.py::TestLangChainPIIDetection::test_govern_email_pii -v
+
+<span class="comment"># Output:</span>
+<span class="comment"># tests/ai_frameworks/test_langchain_adapter.py::TestLangChainPIIDetection::test_govern_email_pii PASSED</span></pre>
+            </div>
+        </section>
+
+        <!-- Section 6: Adding Tests -->
+        <section class="section" id="add-tests">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2>6. Adding Tests for New Frameworks</h2>
+                <span class="toggle">&#9660;</span>
+            </div>
+            <div class="section-content">
+                <h3>Step 1: Create Test File</h3>
+                <p>Create <code>tests/ai_frameworks/test_[framework]_adapter.py</code>:</p>
+                <pre><span class="string">"""
+Tests for [Framework] adapter.
+
+Tests cover:
+- Import/instantiation
+- Configuration
+- PII detection & redaction (email, phone, SSN, credit card)
+- Error handling
+- Compliance receipts
+- [Framework-specific features]
+"""</span>
+
+<span class="keyword">import</span> pytest
+<span class="keyword">from</span> tork_governance <span class="keyword">import</span> Tork, GovernanceAction
+<span class="keyword">from</span> tork_governance.adapters.[framework] <span class="keyword">import</span> (
+    Tork[Framework]Agent,
+    Tork[Framework]Tool,
+)
+<span class="keyword">from</span> .test_data <span class="keyword">import</span> PII_SAMPLES, PII_MESSAGES</pre>
+
+                <h3>Step 2: Add Standard Test Classes</h3>
+                <pre><span class="keyword">class</span> <span class="class">Test[Framework]ImportInstantiation</span>:
+    <span class="string">"""Test import and instantiation of [Framework] adapter."""</span>
+
+    <span class="keyword">def</span> <span class="function">test_import_agent</span>(self):
+        <span class="string">"""Test Tork[Framework]Agent can be imported."""</span>
+        <span class="keyword">assert</span> Tork[Framework]Agent <span class="keyword">is not</span> <span class="keyword">None</span>
+
+    <span class="keyword">def</span> <span class="function">test_instantiate_agent_default</span>(self):
+        <span class="string">"""Test agent instantiation with defaults."""</span>
+        agent = Tork[Framework]Agent()
+        <span class="keyword">assert</span> agent <span class="keyword">is not</span> <span class="keyword">None</span>
+        <span class="keyword">assert</span> agent.tork <span class="keyword">is not</span> <span class="keyword">None</span>
+        <span class="keyword">assert</span> agent.receipts == []
+
+
+<span class="keyword">class</span> <span class="class">Test[Framework]PIIDetection</span>:
+    <span class="string">"""Test PII detection and redaction."""</span>
+
+    <span class="keyword">def</span> <span class="function">test_govern_email_pii</span>(self):
+        <span class="string">"""Test email PII is detected and redacted."""</span>
+        agent = Tork[Framework]Agent()
+        result = agent.govern(PII_MESSAGES[<span class="string">"email_message"</span>])
+        <span class="keyword">assert</span> PII_SAMPLES[<span class="string">"email"</span>] <span class="keyword">not in</span> result
+        <span class="keyword">assert</span> <span class="string">"[EMAIL_REDACTED]"</span> <span class="keyword">in</span> result
+
+    <span class="comment"># Add tests for phone, SSN, credit card...</span></pre>
+
+                <h3>Step 3: Run and Verify</h3>
+                <pre><span class="comment"># Run new tests</span>
+python3 -m pytest tests/ai_frameworks/test_[framework]_adapter.py -v
+
+<span class="comment"># Verify all tests pass</span>
+python3 -m pytest tests/ai_frameworks/ -v --tb=short</pre>
+
+                <div class="info-box">
+                    <strong>Tip:</strong> Use existing test files as templates. Copy the structure from <code>test_langchain_adapter.py</code> and modify for your framework's specific classes and methods.
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 7: Framework Coverage -->
+        <section class="section" id="coverage">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2>7. Framework Coverage Table</h2>
+                <span class="toggle">&#9660;</span>
+            </div>
+            <div class="section-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Framework</th>
+                            <th>Adapter File</th>
+                            <th>Test File</th>
+                            <th>Tests</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1</td><td>LangChain</td><td><code>langchain.py</code></td><td><code>test_langchain_adapter.py</code></td><td>34</td></tr>
+                        <tr><td>2</td><td>CrewAI</td><td><code>crewai.py</code></td><td><code>test_crewai_adapter.py</code></td><td>38</td></tr>
+                        <tr><td>3</td><td>AutoGen</td><td><code>autogen.py</code></td><td><code>test_autogen_adapter.py</code></td><td>38</td></tr>
+                        <tr><td>4</td><td>OpenAI Agents</td><td><code>openai_agents.py</code></td><td><code>test_openai_agents_adapter.py</code></td><td>40</td></tr>
+                        <tr><td>5</td><td>MCP</td><td><code>mcp.py</code></td><td><code>test_mcp_adapter.py</code></td><td>45</td></tr>
+                        <tr><td>6</td><td>LlamaIndex</td><td><code>llamaindex.py</code></td><td><code>test_llamaindex_adapter.py</code></td><td>36</td></tr>
+                        <tr><td>7</td><td>Semantic Kernel</td><td><code>semantic_kernel.py</code></td><td><code>test_semantic_kernel_adapter.py</code></td><td>39</td></tr>
+                        <tr><td>8</td><td>Haystack</td><td><code>haystack.py</code></td><td><code>test_haystack_adapter.py</code></td><td>40</td></tr>
+                        <tr><td>9</td><td>Pydantic AI</td><td><code>pydantic_ai.py</code></td><td><code>test_pydantic_ai_adapter.py</code></td><td>41</td></tr>
+                        <tr><td>10</td><td>DSPy</td><td><code>dspy.py</code></td><td><code>test_dspy_adapter.py</code></td><td>45</td></tr>
+                        <tr><td>11</td><td>Instructor</td><td><code>instructor.py</code></td><td><code>test_instructor_adapter.py</code></td><td>37</td></tr>
+                        <tr><td>12</td><td>Guidance</td><td><code>guidance.py</code></td><td><code>test_guidance_adapter.py</code></td><td>43</td></tr>
+                        <tr><td>13</td><td>LMQL</td><td><code>lmql.py</code></td><td><code>test_lmql_adapter.py</code></td><td>44</td></tr>
+                        <tr><td>14</td><td>Outlines</td><td><code>outlines.py</code></td><td><code>test_outlines_adapter.py</code></td><td>50</td></tr>
+                        <tr><td>15</td><td>Marvin</td><td><code>marvin.py</code></td><td><code>test_marvin_adapter.py</code></td><td>45</td></tr>
+                        <tr><td>16</td><td>SuperAGI</td><td><code>superagi.py</code></td><td><code>test_superagi_adapter.py</code></td><td>35</td></tr>
+                        <tr><td>17</td><td>MetaGPT</td><td><code>metagpt.py</code></td><td><code>test_metagpt_adapter.py</code></td><td>32</td></tr>
+                        <tr><td>18</td><td>BabyAGI</td><td><code>babyagi.py</code></td><td><code>test_babyagi_adapter.py</code></td><td>32</td></tr>
+                        <tr><td>19</td><td>AgentGPT</td><td><code>agentgpt.py</code></td><td><code>test_agentgpt_adapter.py</code></td><td>32</td></tr>
+                        <tr><td>20</td><td>Flowise</td><td><code>flowise.py</code></td><td><code>test_flowise_adapter.py</code></td><td>32</td></tr>
+                        <tr><td>21</td><td>Langflow</td><td><code>langflow.py</code></td><td><code>test_langflow_adapter.py</code></td><td>34</td></tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="4" style="text-align: right;">Total</th>
+                            <th>812</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </section>
+
+        <!-- Section 8: CI/CD -->
+        <section class="section" id="cicd">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2>8. CI/CD Integration</h2>
+                <span class="toggle">&#9660;</span>
+            </div>
+            <div class="section-content">
+                <h3>GitHub Actions Workflow</h3>
+                <p>Add to <code>.github/workflows/test.yml</code>:</p>
+                <pre><span class="keyword">name:</span> AI Framework Tests
+
+<span class="keyword">on:</span>
+  <span class="keyword">push:</span>
+    <span class="keyword">branches:</span> [main]
+  <span class="keyword">pull_request:</span>
+    <span class="keyword">branches:</span> [main]
+
+<span class="keyword">jobs:</span>
+  <span class="keyword">test-ai-frameworks:</span>
+    <span class="keyword">runs-on:</span> ubuntu-latest
+
+    <span class="keyword">steps:</span>
+      - <span class="keyword">uses:</span> actions/checkout@v4
+
+      - <span class="keyword">name:</span> Set up Python
+        <span class="keyword">uses:</span> actions/setup-python@v5
+        <span class="keyword">with:</span>
+          <span class="keyword">python-version:</span> <span class="string">'3.11'</span>
+
+      - <span class="keyword">name:</span> Install dependencies
+        <span class="keyword">run:</span> |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - <span class="keyword">name:</span> Run AI Framework Tests
+        <span class="keyword">run:</span> |
+          python -m pytest tests/ai_frameworks/ -v --tb=short --junitxml=test-results.xml
+
+      - <span class="keyword">name:</span> Upload Test Results
+        <span class="keyword">uses:</span> actions/upload-artifact@v4
+        <span class="keyword">if:</span> always()
+        <span class="keyword">with:</span>
+          <span class="keyword">name:</span> test-results
+          <span class="keyword">path:</span> test-results.xml</pre>
+
+                <h3>Makefile Target</h3>
+                <pre><span class="keyword">.PHONY:</span> test-ai-frameworks
+
+<span class="keyword">test-ai-frameworks:</span>
+	python -m pytest tests/ai_frameworks/ -v --tb=short
+
+<span class="keyword">test-ai-frameworks-coverage:</span>
+	python -m pytest tests/ai_frameworks/ --cov=tork_governance.adapters --cov-report=html
+	open htmlcov/index.html</pre>
+
+                <h3>Pre-commit Hook</h3>
+                <p>Add to <code>.pre-commit-config.yaml</code>:</p>
+                <pre><span class="keyword">repos:</span>
+  - <span class="keyword">repo:</span> local
+    <span class="keyword">hooks:</span>
+      - <span class="keyword">id:</span> ai-framework-tests
+        <span class="keyword">name:</span> AI Framework Tests
+        <span class="keyword">entry:</span> python -m pytest tests/ai_frameworks/ -v --tb=short -x
+        <span class="keyword">language:</span> system
+        <span class="keyword">pass_filenames:</span> <span class="keyword">false</span>
+        <span class="keyword">always_run:</span> <span class="keyword">true</span></pre>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>Tork Governance SDK v0.2.0 | Documentation generated 2026-01-31</p>
+        <p>812 tests across 21 AI frameworks | 100% pass rate</p>
+    </footer>
+
+    <script>
+        function toggleSection(header) {
+            const section = header.parentElement;
+            section.classList.toggle('collapsed');
+        }
+
+        // Initially expand all sections
+        document.querySelectorAll('.section').forEach(section => {
+            section.classList.remove('collapsed');
+        });
+    </script>
+</body>
+</html>

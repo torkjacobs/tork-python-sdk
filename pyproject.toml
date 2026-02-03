@@ -1,0 +1,85 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tork-governance"
+version = "0.17.0"
+description = "On-device AI governance with PII detection and cryptographic receipts"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Tork Network", email = "developers@tork.network"}
+]
+keywords = ["ai", "governance", "pii", "privacy", "security", "llm", "langchain", "crewai"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.9"
+dependencies = []
+
+[project.optional-dependencies]
+langchain = ["langchain>=0.1.0"]
+crewai = ["crewai>=0.1.0"]
+autogen = ["pyautogen>=0.2.0"]
+openai = ["openai>=1.0.0"]
+fastapi = ["fastapi>=0.100.0", "starlette>=0.27.0"]
+django = ["django>=4.0"]
+flask = ["flask>=2.0"]
+huggingface = ["transformers>=4.30.0", "torch>=2.0.0"]
+all = [
+    "langchain>=0.1.0",
+    "crewai>=0.1.0",
+    "pyautogen>=0.2.0",
+    "openai>=1.0.0",
+    "fastapi>=0.100.0",
+    "starlette>=0.27.0",
+    "django>=4.0",
+    "flask>=2.0",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0",
+    "mypy>=1.0",
+    "ruff>=0.1.0",
+]
+
+[project.urls]
+Homepage = "https://tork.network"
+Documentation = "https://docs.tork.network"
+Repository = "https://github.com/torknetwork/tork-governance-python"
+Changelog = "https://github.com/torknetwork/tork-governance-python/blob/main/CHANGELOG.md"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["tork_governance*"]
+
+[tool.black]
+line-length = 100
+target-version = ["py39", "py310", "py311", "py312"]
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "W", "I", "N", "D", "UP", "B", "C4"]
+ignore = ["D100", "D104"]
+
+[tool.mypy]
+python_version = "3.9"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
