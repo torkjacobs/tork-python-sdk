@@ -35,7 +35,7 @@ print(result.pii.types)  # ['ssn', 'email']
 print(result.receipt.receipt_id)  # Cryptographic receipt ID
 ```
 
-## Supported AI Frameworks (49 Adapters)
+## Supported AI Frameworks (53 Adapters)
 
 ### LLM Provider SDKs
 - **OpenAI SDK** - Direct OpenAI API governance with streaming
@@ -44,6 +44,10 @@ print(result.receipt.receipt_id)  # Cryptographic receipt ID
 - **AWS Bedrock** - Bedrock with Claude, Titan, Llama support
 - **Azure OpenAI** - Azure OpenAI Service governance
 - **Cohere SDK** - Chat, embed, rerank, classify governance
+- **Mistral SDK** - Mistral AI chat and embeddings governance
+- **Groq SDK** - Groq LPU chat and audio transcription governance
+- **Together AI SDK** - Together AI chat, completions, and embeddings governance
+- **Replicate SDK** - Replicate model run and predictions governance
 
 ### LLM Orchestration
 - **LangChain** - Chain and agent governance
