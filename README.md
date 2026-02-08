@@ -35,7 +35,7 @@ print(result.pii.types)  # ['ssn', 'email']
 print(result.receipt.receipt_id)  # Cryptographic receipt ID
 ```
 
-## Supported AI Frameworks (64 Adapters)
+## Supported AI Frameworks (67 Adapters)
 
 ### LLM Provider SDKs
 - **OpenAI SDK** - Direct OpenAI API governance with streaming
@@ -122,6 +122,9 @@ print(result.receipt.receipt_id)  # Cryptographic receipt ID
 - **Django** - Middleware integration
 - **Flask** - Extension and decorator support
 - **Starlette** - ASGI middleware
+- **Tornado** - RequestHandler mixin and middleware
+- **Pyramid** - Tween and middleware governance
+- **Sanic** - Async request/response middleware
 
 ## Framework Examples
 
