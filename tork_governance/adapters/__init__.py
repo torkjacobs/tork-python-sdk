@@ -70,6 +70,9 @@ Provides integrations for popular Python frameworks:
 - LM Studio
 - GPT4All
 - PrivateGPT
+- Tornado
+- Pyramid
+- Sanic
 """
 
 from .langchain import TorkCallbackHandler, TorkGovernedChain, create_governed_chain
@@ -148,6 +151,9 @@ from .localai_adapter import TorkLocalAIClient, localai_governed
 from .lmstudio_adapter import TorkLMStudioClient, lmstudio_governed
 from .gpt4all_adapter import TorkGPT4All, gpt4all_governed
 from .privategpt_adapter import TorkPrivateGPT, privategpt_governed
+from .tornado_adapter import TorkTornadoMixin, TorkTornadoMiddleware, tornado_governed
+from .pyramid_adapter import TorkPyramidTween, TorkPyramidMiddleware, pyramid_governed
+from .sanic_adapter import TorkSanicMiddleware, sanic_governed
 
 __all__ = [
     # LangChain
@@ -484,4 +490,15 @@ __all__ = [
     # PrivateGPT
     "TorkPrivateGPT",
     "privategpt_governed",
+    # Tornado
+    "TorkTornadoMixin",
+    "TorkTornadoMiddleware",
+    "tornado_governed",
+    # Pyramid
+    "TorkPyramidTween",
+    "TorkPyramidMiddleware",
+    "pyramid_governed",
+    # Sanic
+    "TorkSanicMiddleware",
+    "sanic_governed",
 ]
