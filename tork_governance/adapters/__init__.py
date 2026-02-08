@@ -59,6 +59,17 @@ Provides integrations for popular Python frameworks:
 - Replicate SDK
 - Hugging Face Transformers
 - n8n AI
+- Mirascope
+- Magentic
+- txtai
+- ChatDev
+- CAMEL
+- Rebuff
+- LLM Guard
+- LocalAI
+- LM Studio
+- GPT4All
+- PrivateGPT
 """
 
 from .langchain import TorkCallbackHandler, TorkGovernedChain, create_governed_chain
@@ -126,6 +137,17 @@ from .agentgpt import TorkAgentGPTAgent, TorkAgentGPTTask, TorkAgentGPTGoal
 from .flowise import TorkFlowiseNode, TorkFlowiseFlow, TorkFlowiseAPI
 from .langflow import TorkLangflowComponent, TorkLangflowFlow, TorkLangflowAPI
 from .starlette import TorkStarletteMiddleware, TorkStarletteRoute, tork_route
+from .mirascope_adapter import TorkMirascopeCall, mirascope_governed
+from .magentic_adapter import TorkMagenticPrompt, magentic_governed
+from .txtai_adapter import TorkTxtaiEmbeddings, TorkTxtaiPipeline, txtai_governed
+from .chatdev_adapter import TorkChatDevPhase, chatdev_governed
+from .camel_adapter import TorkCamelAgent, TorkCamelRolePlaying, camel_governed
+from .rebuff_adapter import TorkRebuff, rebuff_governed
+from .llm_guard_adapter import TorkLLMGuard, llm_guard_governed
+from .localai_adapter import TorkLocalAIClient, localai_governed
+from .lmstudio_adapter import TorkLMStudioClient, lmstudio_governed
+from .gpt4all_adapter import TorkGPT4All, gpt4all_governed
+from .privategpt_adapter import TorkPrivateGPT, privategpt_governed
 
 __all__ = [
     # LangChain
@@ -427,4 +449,39 @@ __all__ = [
     "n8n_governed",
     "create_n8n_governance_node",
     "N8nGovernanceResult",
+    # Mirascope
+    "TorkMirascopeCall",
+    "mirascope_governed",
+    # Magentic
+    "TorkMagenticPrompt",
+    "magentic_governed",
+    # txtai
+    "TorkTxtaiEmbeddings",
+    "TorkTxtaiPipeline",
+    "txtai_governed",
+    # ChatDev
+    "TorkChatDevPhase",
+    "chatdev_governed",
+    # CAMEL
+    "TorkCamelAgent",
+    "TorkCamelRolePlaying",
+    "camel_governed",
+    # Rebuff
+    "TorkRebuff",
+    "rebuff_governed",
+    # LLM Guard
+    "TorkLLMGuard",
+    "llm_guard_governed",
+    # LocalAI
+    "TorkLocalAIClient",
+    "localai_governed",
+    # LM Studio
+    "TorkLMStudioClient",
+    "lmstudio_governed",
+    # GPT4All
+    "TorkGPT4All",
+    "gpt4all_governed",
+    # PrivateGPT
+    "TorkPrivateGPT",
+    "privategpt_governed",
 ]

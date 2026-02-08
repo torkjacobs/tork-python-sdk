@@ -35,7 +35,7 @@ print(result.pii.types)  # ['ssn', 'email']
 print(result.receipt.receipt_id)  # Cryptographic receipt ID
 ```
 
-## Supported AI Frameworks (53 Adapters)
+## Supported AI Frameworks (64 Adapters)
 
 ### LLM Provider SDKs
 - **OpenAI SDK** - Direct OpenAI API governance with streaming
@@ -48,6 +48,10 @@ print(result.receipt.receipt_id)  # Cryptographic receipt ID
 - **Groq SDK** - Groq LPU chat and audio transcription governance
 - **Together AI SDK** - Together AI chat, completions, and embeddings governance
 - **Replicate SDK** - Replicate model run and predictions governance
+- **LocalAI** - Local OpenAI-compatible LLM governance
+- **LM Studio** - LM Studio local inference governance
+- **GPT4All** - GPT4All local LLM governance
+- **PrivateGPT** - PrivateGPT private document AI governance
 
 ### LLM Orchestration
 - **LangChain** - Chain and agent governance
@@ -77,6 +81,15 @@ print(result.receipt.receipt_id)  # Cryptographic receipt ID
 - **Marvin** - AI function governance
 - **Guardrails AI** - Validator integration
 - **NeMo Guardrails** - NVIDIA Colang integration
+- **Rebuff** - Prompt injection detection with governance
+- **LLM Guard** - Input/output scanning with governance
+
+### AI Development Frameworks
+- **Mirascope** - Decorator-based LLM call governance
+- **Magentic** - @prompt decorator governance
+- **txtai** - Embeddings and pipeline governance
+- **ChatDev** - Multi-agent software development governance
+- **CAMEL** - Multi-agent role-playing governance
 
 ### Visual Builders & Platforms
 - **Flowise** - Visual workflow governance
