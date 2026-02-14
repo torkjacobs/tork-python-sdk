@@ -35,6 +35,32 @@ print(result.pii.types)  # ['ssn', 'email']
 print(result.receipt.receipt_id)  # Cryptographic receipt ID
 ```
 
+## Regional PII Detection (v1.1)
+
+Activate country-specific and industry-specific PII patterns with the optional `region` and `industry` parameters:
+
+```python
+from tork_governance import Tork
+
+tork = Tork()
+
+# UAE regional detection — Emirates ID, +971 phone, PO Box
+result = tork.govern(
+    "Emirates ID: 784-1234-1234567-1",
+    region=["ae"]
+)
+
+# Multi-region + industry
+result = tork.govern(
+    "Aadhaar: 1234 5678 9012, ICD-10: J45.20",
+    region=["in"],
+    industry="healthcare"
+)
+
+# Available regions: AU, US, GB, EU, AE, SA, NG, IN, JP, CN, KR, BR
+# Available industries: healthcare, finance, legal
+```
+
 ## Supported AI Frameworks (67 Adapters)
 
 ### LLM Provider SDKs

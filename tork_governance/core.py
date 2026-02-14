@@ -83,6 +83,8 @@ class GovernanceResult:
     output: str
     pii: PIIResult
     receipt: Receipt
+    region: Optional[List[str]] = None
+    industry: Optional[str] = None
 
 
 @dataclass
@@ -222,12 +224,19 @@ class Tork:
             'action_counts': {action: 0 for action in GovernanceAction}
         }
 
-    def govern(self, input_text: str) -> GovernanceResult:
+    def govern(
+        self,
+        input_text: str,
+        region: Optional[List[str]] = None,
+        industry: Optional[str] = None,
+    ) -> GovernanceResult:
         """
         Apply governance rules to input text.
 
         Args:
             input_text: The text to govern
+            region: Optional list of regional PII profiles to activate (e.g. ["ae", "in"])
+            industry: Optional industry profile to activate (e.g. "healthcare", "finance", "legal")
 
         Returns:
             GovernanceResult with action, output, PII info, and receipt
@@ -271,7 +280,9 @@ class Tork:
             action=action,
             output=output,
             pii=pii,
-            receipt=receipt
+            receipt=receipt,
+            region=region,
+            industry=industry,
         )
 
     def get_stats(self) -> dict:
