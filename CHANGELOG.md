@@ -5,6 +5,11 @@ All notable changes to the Tork Governance Python SDK will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.20.2] - 2026-03-09
+
+### Added
+- feat: agent/session context fields (agent_id, agent_role, session_id, session_turn)
+
 ## [0.17.0] - 2026-02-02
 
 ### Added

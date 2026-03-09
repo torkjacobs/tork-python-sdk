@@ -56,6 +56,22 @@ class PIIResult:
 
 
 @dataclass
+class SessionContext:
+    """Agent/session context for multi-agent governance tracking.
+
+    Attributes:
+        agent_id: Identifier for the agent making the call.
+        agent_role: Role of the agent ("planner", "worker", or "judge").
+        session_id: Groups all calls from the same agent session.
+        session_turn: Position in the conversation (1, 2, 3...).
+    """
+    agent_id: Optional[str] = None
+    agent_role: Optional[str] = None
+    session_id: Optional[str] = None
+    session_turn: Optional[int] = None
+
+
+@dataclass
 class Receipt:
     """Cryptographic receipt for governance audit trail."""
     receipt_id: str
@@ -67,6 +83,7 @@ class Receipt:
     processing_time_ns: int
     pii_types: List[PIIType] = field(default_factory=list)
     pii_count: int = 0
+    session_context: Optional[SessionContext] = None
 
     def verify(self, input_text: str, output_text: str) -> bool:
         """Verify that input/output match the receipt hashes."""
@@ -85,6 +102,7 @@ class GovernanceResult:
     receipt: Receipt
     region: Optional[List[str]] = None
     industry: Optional[str] = None
+    session_context: Optional[SessionContext] = None
 
 
 @dataclass
@@ -229,6 +247,10 @@ class Tork:
         input_text: str,
         region: Optional[List[str]] = None,
         industry: Optional[str] = None,
+        agent_id: Optional[str] = None,
+        agent_role: Optional[str] = None,
+        session_id: Optional[str] = None,
+        session_turn: Optional[int] = None,
     ) -> GovernanceResult:
         """
         Apply governance rules to input text.
@@ -237,6 +259,10 @@ class Tork:
             input_text: The text to govern
             region: Optional list of regional PII profiles to activate (e.g. ["ae", "in"])
             industry: Optional industry profile to activate (e.g. "healthcare", "finance", "legal")
+            agent_id: Optional identifier for the agent making the call
+            agent_role: Optional role of the agent ("planner", "worker", or "judge")
+            session_id: Optional identifier that groups all calls from the same agent session
+            session_turn: Optional position in the conversation (1, 2, 3...)
 
         Returns:
             GovernanceResult with action, output, PII info, and receipt
@@ -256,6 +282,16 @@ class Tork:
 
         processing_time_ns = time.time_ns() - start_time
 
+        # Build session context if any agent/session fields are provided
+        session_context = None
+        if any(v is not None for v in (agent_id, agent_role, session_id, session_turn)):
+            session_context = SessionContext(
+                agent_id=agent_id,
+                agent_role=agent_role,
+                session_id=session_id,
+                session_turn=session_turn,
+            )
+
         # Generate receipt
         receipt = Receipt(
             receipt_id=generate_receipt_id(),
@@ -266,7 +302,8 @@ class Tork:
             policy_version=self.config.policy_version,
             processing_time_ns=processing_time_ns,
             pii_types=pii.types,
-            pii_count=pii.count
+            pii_count=pii.count,
+            session_context=session_context,
         )
 
         # Update stats
@@ -283,6 +320,7 @@ class Tork:
             receipt=receipt,
             region=region,
             industry=industry,
+            session_context=session_context,
         )
 
     def get_stats(self) -> dict:

@@ -10,6 +10,7 @@ from .core import (
     PIIResult,
     GovernanceResult,
     Receipt,
+    SessionContext,
     detect_pii,
     redact_pii,
     hash_text,
@@ -18,13 +19,14 @@ from .core import (
     GovernanceAction,
 )
 
-__version__ = "0.20.1"
+__version__ = "0.20.2"
 __all__ = [
     "Tork",
     "TorkConfig",
     "PIIResult",
     "GovernanceResult",
     "Receipt",
+    "SessionContext",
     "detect_pii",
     "redact_pii",
     "hash_text",
