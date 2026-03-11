@@ -5,6 +5,27 @@ All notable changes to the Tork Governance Python SDK will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.21.0] - 2026-03-11
+
+### Added
+#### LangGraph Adapter
+- **TorkLangGraphMiddleware** — Graph-level governance wrapper
+- **TorkGovernedNode** — Node-level governance decorator
+- **govern_graph_invoke** / **govern_graph_stream** — Invocation decorators
+- Full support for LangGraph state machine patterns
+
+#### Google ADK Adapter
+- **TorkADKAgent** — Governed agent wrapper
+- **TorkADKCallback** — ADK callback integration
+- **govern_adk_tool** / **govern_adk_run** — Tool and run decorators
+- Full support for Google ADK tool and agent patterns
+
+#### Anthropic Agent SDK Adapter
+- **TorkAnthropicAgent** — Governed agent wrapper
+- **TorkAnthropicToolWrapper** — Tool governance wrapper
+- **govern_agent_turn** / **govern_tool_use** — Turn and tool decorators
+- Full support for Anthropic message format and streaming
+
 ## [0.20.2] - 2026-03-09
 
 ### Added

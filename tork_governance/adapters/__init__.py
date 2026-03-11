@@ -73,6 +73,9 @@ Provides integrations for popular Python frameworks:
 - Tornado
 - Pyramid
 - Sanic
+- LangGraph
+- Google ADK
+- Anthropic Agent SDK
 """
 
 from .langchain import TorkCallbackHandler, TorkGovernedChain, create_governed_chain
@@ -154,6 +157,9 @@ from .privategpt_adapter import TorkPrivateGPT, privategpt_governed
 from .tornado_adapter import TorkTornadoMixin, TorkTornadoMiddleware, tornado_governed
 from .pyramid_adapter import TorkPyramidTween, TorkPyramidMiddleware, pyramid_governed
 from .sanic_adapter import TorkSanicMiddleware, sanic_governed
+from .langgraph import TorkLangGraphMiddleware, GovernedGraph, TorkGovernedNode, govern_graph_invoke, govern_graph_stream
+from .google_adk import TorkADKAgent, TorkADKCallback, govern_adk_tool, govern_adk_run
+from .anthropic_agents import TorkAnthropicAgent, TorkAnthropicToolWrapper, govern_agent_turn, govern_tool_use
 
 __all__ = [
     # LangChain
@@ -501,4 +507,20 @@ __all__ = [
     # Sanic
     "TorkSanicMiddleware",
     "sanic_governed",
+    # LangGraph
+    "TorkLangGraphMiddleware",
+    "GovernedGraph",
+    "TorkGovernedNode",
+    "govern_graph_invoke",
+    "govern_graph_stream",
+    # Google ADK
+    "TorkADKAgent",
+    "TorkADKCallback",
+    "govern_adk_tool",
+    "govern_adk_run",
+    # Anthropic Agent SDK
+    "TorkAnthropicAgent",
+    "TorkAnthropicToolWrapper",
+    "govern_agent_turn",
+    "govern_tool_use",
 ]

@@ -19,7 +19,7 @@ from .core import (
     GovernanceAction,
 )
 
-__version__ = "0.20.2"
+__version__ = "0.21.0"
 __all__ = [
     "Tork",
     "TorkConfig",
