@@ -76,6 +76,9 @@ Provides integrations for popular Python frameworks:
 - LangGraph
 - Google ADK
 - Anthropic Agent SDK
+- Agno (ex-Phidata)
+- Smolagents (HuggingFace)
+- AWS Strands Agents
 """
 
 from .langchain import TorkCallbackHandler, TorkGovernedChain, create_governed_chain
@@ -160,6 +163,9 @@ from .sanic_adapter import TorkSanicMiddleware, sanic_governed
 from .langgraph import TorkLangGraphMiddleware, GovernedGraph, TorkGovernedNode, govern_graph_invoke, govern_graph_stream
 from .google_adk import TorkADKAgent, TorkADKCallback, govern_adk_tool, govern_adk_run
 from .anthropic_agents import TorkAnthropicAgent, TorkAnthropicToolWrapper, govern_agent_turn, govern_tool_use
+from .agno import TorkAgnoAgent, TorkAgnoTeam, govern_agno_tool, govern_agno_run
+from .smolagents import TorkSmolAgent, TorkSmolTool, govern_smol_run, govern_smol_tool
+from .aws_strands import TorkStrandsAgent, TorkStrandsToolWrapper, govern_strands_invoke, govern_strands_tool
 
 __all__ = [
     # LangChain
@@ -523,4 +529,19 @@ __all__ = [
     "TorkAnthropicToolWrapper",
     "govern_agent_turn",
     "govern_tool_use",
+    # Agno (ex-Phidata)
+    "TorkAgnoAgent",
+    "TorkAgnoTeam",
+    "govern_agno_tool",
+    "govern_agno_run",
+    # Smolagents (HuggingFace)
+    "TorkSmolAgent",
+    "TorkSmolTool",
+    "govern_smol_run",
+    "govern_smol_tool",
+    # AWS Strands Agents
+    "TorkStrandsAgent",
+    "TorkStrandsToolWrapper",
+    "govern_strands_invoke",
+    "govern_strands_tool",
 ]

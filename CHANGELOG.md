@@ -26,6 +26,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **govern_agent_turn** / **govern_tool_use** — Turn and tool decorators
 - Full support for Anthropic message format and streaming
 
+#### Agno Adapter (ex-Phidata)
+- **TorkAgnoAgent** — Governed agent wrapper
+- **TorkAgnoTeam** — Multi-agent team governance
+- **govern_agno_tool** / **govern_agno_run** — Tool and run decorators
+- Full support for Agno multi-agent patterns
+
+#### Smolagents Adapter (HuggingFace)
+- **TorkSmolAgent** — Governed agent wrapper
+- **TorkSmolTool** — Tool governance wrapper
+- **govern_smol_run** / **govern_smol_tool** — Run and tool decorators
+- Support for CodeAgent and ToolCallingAgent patterns
+
+#### AWS Strands Agents Adapter
+- **TorkStrandsAgent** — Governed agent wrapper
+- **TorkStrandsToolWrapper** — Tool governance wrapper
+- **govern_strands_invoke** / **govern_strands_tool** — Invocation decorators
+- Full support for AWS Bedrock agent patterns
+
 ## [0.20.2] - 2026-03-09
 
 ### Added
