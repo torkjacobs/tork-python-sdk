@@ -79,6 +79,12 @@ Provides integrations for popular Python frameworks:
 - Agno (ex-Phidata)
 - Smolagents (HuggingFace)
 - AWS Strands Agents
+- Cloudflare Workers AI Agents
+- AutoAgent
+- CAMEL-AI (multi-agent)
+- Atomic Agents
+- Dapr Agents (Microsoft)
+- OpenClaw (Tork OSS)
 """
 
 from .langchain import TorkCallbackHandler, TorkGovernedChain, create_governed_chain
@@ -166,6 +172,12 @@ from .anthropic_agents import TorkAnthropicAgent, TorkAnthropicToolWrapper, gove
 from .agno import TorkAgnoAgent, TorkAgnoTeam, govern_agno_tool, govern_agno_run
 from .smolagents import TorkSmolAgent, TorkSmolTool, govern_smol_run, govern_smol_tool
 from .aws_strands import TorkStrandsAgent, TorkStrandsToolWrapper, govern_strands_invoke, govern_strands_tool
+from .cloudflare_agents import TorkCloudflareAgent, GovernedCloudflareAgent, TorkCloudflareToolWrapper, cloudflare_governed
+from .autoagent import TorkAutoAgent, GovernedAutoAgentInstance, autoagent_governed
+from .camel_ai import TorkCAMELAgent, GovernedCAMELAgentInstance, GovernedCAMELSession, camel_ai_governed
+from .atomic_agents import TorkAtomicAgent, GovernedAtomicAgentInstance, TorkAtomicToolWrapper, atomic_governed
+from .dapr_agents import TorkDaprAgent, GovernedDaprAgentInstance, TorkDaprWorkflow, dapr_governed
+from .openclaw import TorkOpenClawAgent, GovernedOpenClawInstance, TorkOpenClawPipeline, openclaw_governed
 
 __all__ = [
     # LangChain
@@ -544,4 +556,33 @@ __all__ = [
     "TorkStrandsToolWrapper",
     "govern_strands_invoke",
     "govern_strands_tool",
+    # Cloudflare Workers AI Agents
+    "TorkCloudflareAgent",
+    "GovernedCloudflareAgent",
+    "TorkCloudflareToolWrapper",
+    "cloudflare_governed",
+    # AutoAgent
+    "TorkAutoAgent",
+    "GovernedAutoAgentInstance",
+    "autoagent_governed",
+    # CAMEL-AI
+    "TorkCAMELAgent",
+    "GovernedCAMELAgentInstance",
+    "GovernedCAMELSession",
+    "camel_ai_governed",
+    # Atomic Agents
+    "TorkAtomicAgent",
+    "GovernedAtomicAgentInstance",
+    "TorkAtomicToolWrapper",
+    "atomic_governed",
+    # Dapr Agents (Microsoft)
+    "TorkDaprAgent",
+    "GovernedDaprAgentInstance",
+    "TorkDaprWorkflow",
+    "dapr_governed",
+    # OpenClaw (Tork OSS)
+    "TorkOpenClawAgent",
+    "GovernedOpenClawInstance",
+    "TorkOpenClawPipeline",
+    "openclaw_governed",
 ]
