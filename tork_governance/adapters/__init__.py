@@ -88,6 +88,9 @@ Provides integrations for popular Python frameworks:
 - Letta (formerly MemGPT)
 - ControlFlow (Prefect)
 - Dynamiq
+- Floki AI
+- Qwen Agent
+- Langroid
 """
 
 from .langchain import TorkCallbackHandler, TorkGovernedChain, create_governed_chain
@@ -184,6 +187,9 @@ from .openclaw import TorkOpenClawAgent, GovernedOpenClawInstance, TorkOpenClawP
 from .letta import LettaAdapter, GovernedLettaAgent
 from .controlflow import ControlFlowAdapter, GovernedControlFlowTask, GovernedControlFlowFlow
 from .dynamiq import DynamiqAdapter, GovernedDynamiqNode, GovernedDynamiqWorkflow
+from .floki import FlokiAdapter, GovernedFlokiAgent
+from .qwen_agent import QwenAgentAdapter, GovernedQwenAgent
+from .langroid import LangroidAdapter, GovernedLangroidAgent, GovernedLangroidTask
 
 __all__ = [
     # LangChain
@@ -602,4 +608,14 @@ __all__ = [
     "DynamiqAdapter",
     "GovernedDynamiqNode",
     "GovernedDynamiqWorkflow",
+    # Floki AI
+    "FlokiAdapter",
+    "GovernedFlokiAgent",
+    # Qwen Agent
+    "QwenAgentAdapter",
+    "GovernedQwenAgent",
+    # Langroid
+    "LangroidAdapter",
+    "GovernedLangroidAgent",
+    "GovernedLangroidTask",
 ]
