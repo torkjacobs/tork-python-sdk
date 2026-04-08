@@ -85,6 +85,9 @@ Provides integrations for popular Python frameworks:
 - Atomic Agents
 - Dapr Agents (Microsoft)
 - OpenClaw (Tork OSS)
+- Letta (formerly MemGPT)
+- ControlFlow (Prefect)
+- Dynamiq
 """
 
 from .langchain import TorkCallbackHandler, TorkGovernedChain, create_governed_chain
@@ -178,6 +181,9 @@ from .camel_ai import TorkCAMELAgent, GovernedCAMELAgentInstance, GovernedCAMELS
 from .atomic_agents import TorkAtomicAgent, GovernedAtomicAgentInstance, TorkAtomicToolWrapper, atomic_governed
 from .dapr_agents import TorkDaprAgent, GovernedDaprAgentInstance, TorkDaprWorkflow, dapr_governed
 from .openclaw import TorkOpenClawAgent, GovernedOpenClawInstance, TorkOpenClawPipeline, openclaw_governed
+from .letta import LettaAdapter, GovernedLettaAgent
+from .controlflow import ControlFlowAdapter, GovernedControlFlowTask, GovernedControlFlowFlow
+from .dynamiq import DynamiqAdapter, GovernedDynamiqNode, GovernedDynamiqWorkflow
 
 __all__ = [
     # LangChain
@@ -585,4 +591,15 @@ __all__ = [
     "GovernedOpenClawInstance",
     "TorkOpenClawPipeline",
     "openclaw_governed",
+    # Letta (formerly MemGPT)
+    "LettaAdapter",
+    "GovernedLettaAgent",
+    # ControlFlow (Prefect)
+    "ControlFlowAdapter",
+    "GovernedControlFlowTask",
+    "GovernedControlFlowFlow",
+    # Dynamiq
+    "DynamiqAdapter",
+    "GovernedDynamiqNode",
+    "GovernedDynamiqWorkflow",
 ]
