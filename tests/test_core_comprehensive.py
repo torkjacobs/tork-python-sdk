@@ -500,8 +500,9 @@ class TestTorkGovern:
         tork = Tork(default_action=GovernanceAction.DENY)
         result = tork.govern("SSN: 123-45-6789")
         assert result.action == GovernanceAction.DENY
-        # With DENY, original text is kept (not redacted)
-        assert "123-45-6789" in result.output
+        # With DENY, output is still redacted to prevent PII exposure
+        assert "123-45-6789" not in result.output
+        assert "[SSN_REDACTED]" in result.output
 
     def test_govern_multiple_pii(self):
         """Test governing multiple PII types"""

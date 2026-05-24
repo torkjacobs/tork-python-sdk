@@ -182,7 +182,7 @@ def detect_pii(
             detected_types.add(pii_type)
             matches.append(PIIMatch(
                 type=pii_type,
-                value=match.group(),
+                value='[REDACTED]',
                 start_index=match.start(),
                 end_index=match.end()
             ))
@@ -275,7 +275,7 @@ class Tork:
         # Determine action and output
         if pii.has_pii:
             action = self.config.default_action
-            output = pii.redacted_text if action == GovernanceAction.REDACT else input_text
+            output = pii.redacted_text
         else:
             action = GovernanceAction.ALLOW
             output = input_text
