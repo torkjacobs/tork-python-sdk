@@ -5,9 +5,31 @@ All notable changes to the Tork Governance Python SDK will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.21.0] - 2026-03-11
+## [0.22.0] - 2026-07-16
+
+> **Note on version numbering:** 0.20.1, 0.20.2, and 0.21.0 were internal version
+> bumps that were never published to PyPI. This release consolidates everything
+> since the last published release (0.20.0) into a single 0.22.0 release — there
+> is no published 0.21.0.
+
+### Security
+- **Behaviour change: raw PII is never exposed in governance results.** Two public surfaces are affected:
+  - **`PIIMatch.value`** is now always the literal string `'[REDACTED]'` — it no longer contains the raw matched PII text. To inspect what was caught, use `match.type` together with `match.start_index` / `match.end_index` to locate the match in your own copy of the original input; do not read `match.value`.
+  - **`Tork.govern()` output** is now always the redacted text whenever PII is found, regardless of the configured action. Previously only `REDACT` returned redacted text — `DENY`, `ESCALATE`, and `HASH` returned the raw input unchanged in `result.output`.
+  - Callers that log, display, or persist `result.output` or `match.value` could previously leak raw PII; upgrading is strongly recommended.
 
 ### Added
+
+#### Regional & Industry PII Profiles (PII v1.1)
+- **govern(region=...)** — Activate regional PII profiles per call (e.g. `["ae", "in"]`)
+- **govern(industry=...)** — Activate an industry profile per call (e.g. `"healthcare"`, `"finance"`, `"legal"`)
+- **GovernanceResult.region** / **GovernanceResult.industry** — Profiles echoed on the result
+
+#### Agent/Session Context Fields
+- **SessionContext** — New dataclass with `agent_id`, `agent_role`, `session_id`, `session_turn` for multi-agent governance tracking
+- **govern(agent_id=..., agent_role=..., session_id=..., session_turn=...)** — Context accepted per call
+- **Receipt.session_context** / **GovernanceResult.session_context** — Context carried on receipts and results
+
 #### LangGraph Adapter
 - **TorkLangGraphMiddleware** — Graph-level governance wrapper
 - **TorkGovernedNode** — Node-level governance decorator
@@ -44,10 +66,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **govern_strands_invoke** / **govern_strands_tool** — Invocation decorators
 - Full support for AWS Bedrock agent patterns
 
-## [0.20.2] - 2026-03-09
+#### Cloudflare Agents Adapter (Tier 2)
+- **TorkCloudflareAgent** / **GovernedCloudflareAgent** — Governed agent wrappers
+- **TorkCloudflareToolWrapper** — Tool governance wrapper
+- **cloudflare_governed** — Decorator for existing code
 
-### Added
-- feat: agent/session context fields (agent_id, agent_role, session_id, session_turn)
+#### AutoAgent Adapter (Tier 2)
+- **TorkAutoAgent** / **GovernedAutoAgentInstance** — Governed agent wrappers
+- **autoagent_governed** — Decorator for existing code
+
+#### CAMEL-AI Adapter (Tier 2)
+- **TorkCAMELAgent** / **GovernedCAMELAgentInstance** — Governed agent wrappers
+- **GovernedCAMELSession** — Multi-agent role-playing session governance
+- **camel_ai_governed** — Decorator for existing code
+
+#### Atomic Agents Adapter (Tier 2)
+- **TorkAtomicAgent** / **GovernedAtomicAgentInstance** — Governed agent wrappers
+- **TorkAtomicToolWrapper** — Tool governance wrapper
+- **atomic_governed** — Decorator for existing code
+
+#### Dapr Agents Adapter (Tier 2)
+- **TorkDaprAgent** / **GovernedDaprAgentInstance** — Governed agent wrappers
+- **TorkDaprWorkflow** — Workflow-level governance
+- **dapr_governed** — Decorator for existing code
+
+#### OpenClaw Adapter (Tier 2)
+- **TorkOpenClawAgent** / **GovernedOpenClawInstance** — Governed agent wrappers
+- **TorkOpenClawPipeline** — Pipeline-level governance
+- **openclaw_governed** — Decorator for existing code
+
+#### Letta Adapter (Tier 3)
+- **LettaAdapter** — Governance adapter
+- **GovernedLettaAgent** — Governed agent wrapper
+
+#### ControlFlow Adapter (Tier 3)
+- **ControlFlowAdapter** — Governance adapter
+- **GovernedControlFlowTask** / **GovernedControlFlowFlow** — Task and flow governance
+
+#### Dynamiq Adapter (Tier 3)
+- **DynamiqAdapter** — Governance adapter
+- **GovernedDynamiqNode** / **GovernedDynamiqWorkflow** — Node and workflow governance
+
+#### Floki Adapter (Tier 3)
+- **FlokiAdapter** — Governance adapter
+- **GovernedFlokiAgent** — Governed agent wrapper
+
+#### Qwen Agent Adapter (Tier 3)
+- **QwenAgentAdapter** — Governance adapter
+- **GovernedQwenAgent** — Governed agent wrapper
+
+#### Langroid Adapter (Tier 3)
+- **LangroidAdapter** — Governance adapter
+- **GovernedLangroidAgent** / **GovernedLangroidTask** — Agent and task governance
+
+### Changed
+- 18 new framework adapter modules in this release, taking the adapter total to 136
 
 ## [0.17.0] - 2026-02-02
 

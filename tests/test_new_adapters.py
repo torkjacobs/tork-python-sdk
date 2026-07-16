@@ -28,7 +28,7 @@ class TestMCPAdapter:
 
         wrapper = TorkMCPToolWrapper()
 
-        @wrapper.govern_tool
+        @wrapper.wrap_tool
         def search_tool(query: str) -> str:
             return f"Results for: {query}"
 
@@ -45,20 +45,20 @@ class TestMCPAdapter:
         """Test TorkMCPServer initialization."""
         from tork_governance.adapters.mcp import TorkMCPServer
 
-        server = TorkMCPServer(server_name="test-server")
-        assert server.server_name == "test-server"
+        server = TorkMCPServer(name="test-server")
+        assert server.name == "test-server"
         assert len(server.tools) == 0
 
     def test_mcp_server_register_tool(self):
         """Test tool registration."""
         from tork_governance.adapters.mcp import TorkMCPServer
 
-        server = TorkMCPServer(server_name="test-server")
+        server = TorkMCPServer(name="test-server")
 
+        @server.tool("my_tool")
         def my_tool(text: str) -> str:
             return text.upper()
 
-        server.register_tool(my_tool)
         assert "my_tool" in server.tools
 
     def test_mcp_middleware(self):
@@ -67,10 +67,13 @@ class TestMCPAdapter:
 
         middleware = TorkMCPMiddleware()
 
-        # Test request governance
-        request = {"arguments": {"query": "test@email.com"}}
+        # Test request governance (MCP JSON-RPC shape: params.arguments)
+        request = {
+            "method": "tools/call",
+            "params": {"name": "search", "arguments": {"query": "test@email.com"}},
+        }
         governed = middleware.govern_request(request)
-        assert "[EMAIL_REDACTED]" in governed["arguments"]["query"]
+        assert "[EMAIL_REDACTED]" in governed["params"]["arguments"]["query"]
 
 
 class TestLlamaIndexAdapter:

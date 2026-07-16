@@ -16,14 +16,14 @@ class TestTork:
     def test_create_default(self):
         """Test creating Tork with default settings."""
         tork = Tork()
-        assert tork.policy_version == "1.0.0"
-        assert tork.default_action == GovernanceAction.REDACT
+        assert tork.config.policy_version == "1.0.0"
+        assert tork.config.default_action == GovernanceAction.REDACT
 
     def test_create_with_config(self):
         """Test creating Tork with custom config."""
         tork = Tork(api_key="test_key", policy_version="2.0.0")
-        assert tork.policy_version == "2.0.0"
-        assert tork.api_key == "test_key"
+        assert tork.config.policy_version == "2.0.0"
+        assert tork.config.api_key == "test_key"
 
 
 class TestPIIDetection:
@@ -115,7 +115,7 @@ class TestStatistics:
         tork.govern("SSN: 123-45-6789")
         tork.govern("Text 3")
 
-        stats = tork.stats
+        stats = tork.get_stats()
         assert stats["total_calls"] == 3
         assert stats["total_pii_detected"] == 1
 
@@ -125,5 +125,5 @@ class TestStatistics:
         tork.govern("Test")
         tork.reset_stats()
 
-        stats = tork.stats
+        stats = tork.get_stats()
         assert stats["total_calls"] == 0

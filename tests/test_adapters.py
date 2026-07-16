@@ -50,7 +50,7 @@ class TestCrewAIAdapter:
         """Test message governance."""
         from tork_governance.adapters.crewai import TorkCrewAIMiddleware
         middleware = TorkCrewAIMiddleware()
-        result = middleware.govern_message("My SSN is 123-45-6789", "input")
+        result = middleware.process_input("My SSN is 123-45-6789")
         assert result.pii.has_pii
         assert "[SSN_REDACTED]" in result.output
 
