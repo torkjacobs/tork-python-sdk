@@ -5,6 +5,29 @@ All notable changes to the Tork Governance Python SDK will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.23.0] - 2026-07-16
+
+### Changed
+- **`api_key` now emits a `UserWarning` when provided.** This SDK has always
+  been on-device only: the `api_key` accepted by `TorkConfig`, `Tork(...)`, and
+  every adapter that forwards one was never read, never authenticated, and no
+  data was ever sent to tork.network. Receipts are generated in local memory
+  and are not persisted to the tork.network dashboard. Previously this failed
+  silently — a bogus key behaved identically to a real one and the dashboard
+  simply stayed empty. This release does not add cloud support; it discloses
+  that there isn't any. The warning fires once per process, points at the
+  caller's line (`stacklevel`), and directs users to `@torknetwork/sdk` (Node)
+  or the Tork REST API for cloud governance with persisted receipts.
+- Docstrings corrected to stop implying `api_key` is used: `TorkConfig`
+  attribute docs, the LangChain `create_governed_chain` Args entry, the
+  Django `TORK_API_KEY` settings examples, and adapter usage examples
+  (OpenClaw, Cloudflare Agents, Dapr Agents, CAMEL-AI, Atomic Agents,
+  AutoAgent) that constructed wrappers with `api_key="tork-key"`.
+
+### Added
+- `tests/test_api_key_warning.py` — coverage for warn-on-key, no-warn-without-key,
+  once-per-process behaviour, and adapter inheritance of the warning.
+
 ## [0.22.0] - 2026-07-16
 
 > **Note on version numbering:** 0.20.1, 0.20.2, and 0.21.0 were internal version

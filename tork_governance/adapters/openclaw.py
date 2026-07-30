@@ -18,7 +18,7 @@ class TorkOpenClawAgent:
 
     Example:
         >>> from tork_governance.adapters.openclaw import TorkOpenClawAgent
-        >>> agent = TorkOpenClawAgent(api_key="tork-key")
+        >>> agent = TorkOpenClawAgent()
         >>> result = agent.govern("user input text")
     """
 

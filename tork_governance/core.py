@@ -7,6 +7,7 @@ PII detection, redaction, and governance with cryptographic receipts.
 import re
 import hashlib
 import secrets
+import warnings
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -105,13 +106,57 @@ class GovernanceResult:
     session_context: Optional[SessionContext] = None
 
 
+_API_KEY_UNUSED_MESSAGE = (
+    "You passed an api_key to tork-governance, but this package does not use it. "
+    "tork-governance (Python) runs entirely on-device: it never authenticates with "
+    "or sends any data to tork.network. Governance receipts are generated in local "
+    "memory only, are discarded when your process exits, and will NOT appear in "
+    "your tork.network dashboard. For cloud governance with persisted dashboard "
+    "receipts, use the Node SDK (@torknetwork/sdk) or the Tork REST API. "
+    "Remove the api_key argument to silence this warning."
+)
+
+# Module-level flag so the api_key warning fires at most once per process.
+_api_key_warning_emitted = False
+
+
+def _warn_api_key_unused(stacklevel: int = 2) -> None:
+    """Warn once per process that api_key is accepted but unused.
+
+    stacklevel is relative to the caller of this helper: 2 points at the
+    caller's caller (i.e. the customer's line), exactly as if the caller
+    had invoked warnings.warn(..., stacklevel=2) itself.
+    """
+    global _api_key_warning_emitted
+    if _api_key_warning_emitted:
+        return
+    _api_key_warning_emitted = True
+    warnings.warn(_API_KEY_UNUSED_MESSAGE, UserWarning, stacklevel=stacklevel + 1)
+
+
 @dataclass
 class TorkConfig:
-    """Configuration for Tork client."""
+    """Configuration for Tork client.
+
+    Attributes:
+        policy_version: Policy version string recorded on receipts.
+        default_action: Action taken when PII is detected.
+        custom_patterns: Optional custom regex patterns to detect.
+        api_key: Accepted for API compatibility but currently UNUSED —
+            this SDK is on-device only and never contacts tork.network.
+            Providing a value emits a UserWarning (once per process).
+    """
     policy_version: str = "1.0.0"
     default_action: GovernanceAction = GovernanceAction.REDACT
     custom_patterns: Optional[Dict[str, Pattern]] = None
     api_key: Optional[str] = None
+
+    def __post_init__(self):
+        if self.api_key:
+            # Frames above the helper's warn(): __post_init__ (1 relative) ->
+            # dataclass-generated __init__ (2) -> whoever constructed the
+            # config (3) — that construction site is the customer's line.
+            _warn_api_key_unused(stacklevel=3)
 
 
 # PII Detection Patterns
@@ -229,6 +274,10 @@ class Tork:
         if config:
             self.config = config
         else:
+            # Warn here (not via TorkConfig.__post_init__) so the warning
+            # points at the customer's Tork(...) call rather than this file.
+            if api_key:
+                _warn_api_key_unused(stacklevel=2)
             self.config = TorkConfig(
                 policy_version=policy_version,
                 default_action=default_action,

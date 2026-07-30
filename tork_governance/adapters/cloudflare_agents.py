@@ -21,7 +21,7 @@ class TorkCloudflareAgent:
 
     Example:
         >>> from tork_governance.adapters.cloudflare_agents import TorkCloudflareAgent
-        >>> agent = TorkCloudflareAgent(api_key="tork-key")
+        >>> agent = TorkCloudflareAgent()
         >>> result = agent.govern("user input text")
     """
 

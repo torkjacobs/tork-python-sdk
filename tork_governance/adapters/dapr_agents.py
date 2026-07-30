@@ -18,7 +18,7 @@ class TorkDaprAgent:
 
     Example:
         >>> from tork_governance.adapters.dapr_agents import TorkDaprAgent
-        >>> agent = TorkDaprAgent(api_key="tork-key")
+        >>> agent = TorkDaprAgent()
         >>> result = agent.govern("user input text")
     """
 

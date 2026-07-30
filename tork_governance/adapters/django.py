@@ -20,7 +20,7 @@ class TorkDjangoMiddleware:
         ]
 
     Configure in settings.py:
-        TORK_API_KEY = 'your_api_key'
+        TORK_API_KEY = 'your_api_key'  # currently unused — governance is on-device only
         TORK_POLICY_VERSION = '1.0.0'
         TORK_PROTECTED_PATHS = ['/api/chat/', '/api/generate/']
 
@@ -31,7 +31,7 @@ class TorkDjangoMiddleware:
         >>>     'tork_governance.adapters.django.TorkDjangoMiddleware',
         >>>     ...
         >>> ]
-        >>> TORK_API_KEY = 'your_api_key'
+        >>> TORK_API_KEY = 'your_api_key'  # currently unused — governance is on-device only
         >>>
         >>> # views.py
         >>> def chat_view(request):

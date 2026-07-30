@@ -211,7 +211,8 @@ def create_governed_chain(
 
     Args:
         chain: The LangChain chain/runnable to wrap
-        api_key: Optional Tork API key
+        api_key: Optional Tork API key (currently unused — this SDK is
+            on-device only and never contacts tork.network)
         policy_version: Policy version string
 
     Returns:

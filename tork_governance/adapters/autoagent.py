@@ -18,7 +18,7 @@ class TorkAutoAgent:
 
     Example:
         >>> from tork_governance.adapters.autoagent import TorkAutoAgent
-        >>> agent = TorkAutoAgent(api_key="tork-key")
+        >>> agent = TorkAutoAgent()
         >>> result = agent.govern("user input text")
     """
 

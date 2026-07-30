@@ -18,7 +18,7 @@ class TorkCAMELAgent:
 
     Example:
         >>> from tork_governance.adapters.camel_ai import TorkCAMELAgent
-        >>> agent = TorkCAMELAgent(api_key="tork-key")
+        >>> agent = TorkCAMELAgent()
         >>> result = agent.govern("user input text")
     """
 
