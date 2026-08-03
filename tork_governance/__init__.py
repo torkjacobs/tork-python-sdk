@@ -11,15 +11,16 @@ from .core import (
     GovernanceResult,
     Receipt,
     SessionContext,
+    AttestationReport,
     detect_pii,
     redact_pii,
     hash_text,
     generate_receipt_id,
     PIIType,
     GovernanceAction,
+    __version__,
 )
 
-__version__ = "0.23.0"
 __all__ = [
     "Tork",
     "TorkConfig",
@@ -27,10 +28,12 @@ __all__ = [
     "GovernanceResult",
     "Receipt",
     "SessionContext",
+    "AttestationReport",
     "detect_pii",
     "redact_pii",
     "hash_text",
     "generate_receipt_id",
     "PIIType",
     "GovernanceAction",
+    "__version__",
 ]

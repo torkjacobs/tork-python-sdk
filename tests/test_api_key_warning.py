@@ -17,13 +17,22 @@ def reset_warning_flag():
     core._api_key_warning_emitted = False
 
 
+@pytest.fixture(autouse=True)
+def no_network(monkeypatch):
+    """These tests only care about the warning, not reporting — never let a
+    govern() call in this file attempt a real request to tork.network."""
+    def _blocked(*args, **kwargs):
+        raise OSError("network access disabled in tests")
+    monkeypatch.setattr(core.urllib.request, "urlopen", _blocked)
+
+
 class TestApiKeyWarning:
     def test_warns_when_api_key_passed_to_tork(self):
-        with pytest.warns(UserWarning, match="does not use it"):
+        with pytest.warns(UserWarning, match="reporting to tork.network is now ON"):
             Tork(api_key="tork_sk_live_abc123")
 
     def test_warns_when_api_key_passed_to_config(self):
-        with pytest.warns(UserWarning, match="on-device"):
+        with pytest.warns(UserWarning, match="CLIENT ATTESTATION"):
             TorkConfig(api_key="tork_sk_live_abc123")
 
     def test_warns_when_config_with_api_key_passed_to_tork(self):
