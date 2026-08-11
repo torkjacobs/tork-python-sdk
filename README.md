@@ -1,6 +1,6 @@
 # Tork Governance Python SDK
 
-On-device AI governance with PII detection, redaction, and cryptographic receipts.
+On-device AI governance with PII detection, redaction, and local audit receipts.
 
 [![PyPI version](https://badge.fury.io/py/tork-governance.svg)](https://badge.fury.io/py/tork-governance)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
@@ -32,7 +32,7 @@ result = tork.govern("My SSN is 123-45-6789 and email is john@example.com")
 
 print(result.output)  # "My SSN is [SSN_REDACTED] and email is [EMAIL_REDACTED]"
 print(result.pii.types)  # ['ssn', 'email']
-print(result.receipt.receipt_id)  # Cryptographic receipt ID
+print(result.receipt.receipt_id)  # Locally-generated receipt ID
 ```
 
 ## Regional PII Detection (v1.1)
@@ -262,19 +262,45 @@ Detects 50+ PII types across multiple regions:
 - **GLBA** - Financial privacy
 - **COPPA** - Children's privacy
 
-## Cryptographic Receipts
+## Receipts & Attestation
 
-Every governance action generates a verifiable receipt:
+Every `govern()` call **locally mints** a receipt, entirely on-device. This happens
+every time, regardless of network access, and doesn't depend on whether a server was
+ever reached:
 
 ```python
 result = tork.govern("Sensitive data here")
 
 receipt = result.receipt
-print(receipt.receipt_id)    # Unique identifier
+print(receipt.receipt_id)    # Locally-generated identifier
 print(receipt.timestamp)     # ISO 8601 timestamp
 print(receipt.input_hash)    # SHA-256 of input
 print(receipt.output_hash)   # SHA-256 of output
 print(receipt.policy_version)  # Applied policy version
+```
+
+If you supply an `api_key` (via `Tork(api_key=...)` or `TorkConfig`), `govern()`
+additionally attempts to report the decision to tork.network as a separate **server
+attestation**. This is optional, asynchronous, and best-effort:
+
+- It runs on a background thread — `govern()` never blocks on it.
+- The network call (and its one retry) can fail; nothing about the local decision
+  above is affected either way.
+- Check `result.report.attempted` and `.succeeded` before treating a decision as
+  anchored on the server — don't assume success just because reporting was attempted.
+- On success, `result.report.receipt_id` is the **server's** receipt ID, a different
+  value from the local `receipt.receipt_id` above.
+
+```python
+report = result.report
+print(report.attempted)   # Whether reporting was attempted (api_key configured)
+print(report.succeeded)   # Whether the server actually persisted the attestation
+print(report.receipt_id)  # Server-side receipt ID, only set once succeeded
+print(report.reason)      # Why it hasn't succeeded (or its current status)
+
+# Block until the background attempt settles, if you need the confirmed
+# outcome before proceeding — most callers don't need this.
+report.wait(timeout=5)
 ```
 
 ## Configuration

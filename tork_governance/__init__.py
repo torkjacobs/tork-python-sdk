@@ -1,7 +1,7 @@
 """
 Tork Governance SDK for Python
 
-On-device AI governance with PII detection, redaction, and cryptographic receipts.
+On-device AI governance with PII detection, redaction, and local audit receipts.
 """
 
 from .core import (

@@ -1,7 +1,7 @@
 """
 Tork Governance Core Module
 
-PII detection, redaction, and governance with cryptographic receipts.
+PII detection, redaction, and governance with local audit receipts.
 """
 
 import importlib.metadata
@@ -96,7 +96,12 @@ class SessionContext:
 
 @dataclass
 class Receipt:
-    """Cryptographic receipt for governance audit trail."""
+    """Locally-minted receipt (SHA-256 hashes) for governance audit trail.
+
+    Generated entirely on-device by every `govern()` call, independent of
+    whether server attestation (see `AttestationReport`) was attempted or
+    succeeded.
+    """
     receipt_id: str
     timestamp: str
     input_hash: str
