@@ -17,7 +17,6 @@ class PIIType(Enum):
     """All supported PII types"""
     # US-Specific
     SSN = "ssn"
-    SSN_NO_DASHES = "ssn_no_dashes"
     PHONE_US = "phone_us"
     DRIVER_LICENSE_US = "driver_license_us"
     PASSPORT_US = "passport_us"
@@ -74,8 +73,6 @@ class PIIType(Enum):
     FINGERPRINT_ID = "fingerprint_id"
 
     # Generic
-    NAME = "name"
-    ADDRESS = "address"
     PHONE_GENERIC = "phone_generic"
 
 
@@ -255,6 +252,25 @@ def _validate_npi(number: str) -> bool:
     # Prepend 80840 and validate with Luhn
     full = '80840' + number
     return _validate_credit_card(full)
+
+
+def _validate_phone_generic(number: str) -> bool:
+    """Validate a keyword-labeled generic phone number: E.164 digit-count bounds
+    (7-15 digits) -- there's no checksum for phone numbers -- and not already a
+    better fit for one of the region-specific phone patterns (US/AU/EU). If it
+    structurally matches one of those, that pattern's label is the more specific
+    and correct one; phone_generic firing too would just double-label the
+    identical span (and corrupt PIIDetector.redact(), which assumes matches
+    don't share a span -- see test_pii_type_parity.py)."""
+    digits = re.sub(r'\D', '', number)
+    if not (7 <= len(digits) <= 15):
+        return False
+    stripped = number.strip()
+    if (US_PATTERNS[PIIType.PHONE_US]["pattern"].fullmatch(stripped) or
+            AU_PATTERNS[PIIType.PHONE_AU]["pattern"].fullmatch(stripped) or
+            EU_PATTERNS[PIIType.PHONE_EU]["pattern"].fullmatch(stripped)):
+        return False
+    return True
 
 
 def _validate_dea(number: str) -> bool:
@@ -552,6 +568,29 @@ UNIVERSAL_PATTERNS: Dict[PIIType, Dict] = {
         "redaction": "[DOB_REDACTED]",
         "description": "Date of Birth",
         "examples": ["DOB: 01/15/1985", "Date of Birth: 15-01-1985"],
+    },
+    PIIType.URL_WITH_PII: {
+        "pattern": re.compile(
+            r'https?://\S*?[?&](?:email|ssn|phone|dob|passport|password|token|api[_-]?key|secret|auth)=[^\s&]+',
+            re.IGNORECASE
+        ),
+        "validation": lambda m: True,
+        "redaction": "[URL_PII_REDACTED]",
+        "description": "URL containing PII-indicative query parameters (e.g. email=, ssn=, token=)",
+        "examples": [
+            "https://example.com/reset?email=john@example.com&token=abc123",
+            "http://api.example.com/user?ssn=123456789",
+        ],
+    },
+    PIIType.PHONE_GENERIC: {
+        "pattern": re.compile(
+            r'\b(?:Phone|Tel|Telephone|Mobile|Cell)(?:\s*(?:Number|No\.?))?[:\s#]*(\+?\d[\d\-.\s]{5,18}\d)\b',
+            re.IGNORECASE
+        ),
+        "validation": lambda m: _validate_phone_generic(m.group(1)),
+        "redaction": "[PHONE_GENERIC_REDACTED]",
+        "description": "Keyword-labeled phone number not matching a specific regional format",
+        "examples": ["Phone: +254 20 123 4567", "Tel: 09-8765-4321", "Mobile Number: +81-90-1234-5678"],
     },
 }
 

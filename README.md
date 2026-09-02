@@ -247,7 +247,7 @@ then the default):
 
 | `detector` | Default? | Type vocabulary | Checksum validation |
 |---|---|---|---|
-| `"regional"` | **Yes** | 42 types across US/AU/EU/UK + universal/financial/healthcare/biometric (`tork_governance.detectors.pii_patterns`) | Yes, on the types that have one (SSN, credit card, IBAN, TFN, NHS, ABN, Medicare, NINO, routing number, NPI, DEA) — a lookalike that fails its checksum is not flagged |
+| `"regional"` | **Yes** | 44 types across US/AU/EU/UK + universal/financial/healthcare/biometric (`tork_governance.detectors.pii_patterns`) | Yes, on the types that have one (SSN, credit card, IBAN, TFN, NHS, ABN, Medicare, NINO, routing number, NPI, DEA) — a lookalike that fails its checksum is not flagged |
 | `"basic"` | No — opt in | 10 types: `ssn`, `credit_card`, `email`, `phone`, `address`, `ip_address`, `date_of_birth`, `passport`, `drivers_license`, `bank_account` | No |
 
 ```python
@@ -280,10 +280,42 @@ Full list of regional types by category, generated from
 | **Australia** (5) | `abn`, `acn`, `medicare_au`, `phone_au`, `tfn` |
 | **EU** (5) | `french_ssn`, `german_id`, `iban`, `phone_eu`, `vat_eu` |
 | **UK** (4) | `nhs_uk`, `nino_uk`, `postcode_uk`, `sort_code_uk` |
-| **Universal** (6) | `credit_card`, `date_of_birth`, `email`, `ip_address`, `ipv6_address`, `mac_address` |
+| **Universal** (8) | `credit_card`, `date_of_birth`, `email`, `ip_address`, `ipv6_address`, `mac_address`, `phone_generic`, `url_with_pii` |
 | **Financial** (6) | `bank_account`, `card_expiry`, `crypto_address`, `cvv`, `routing_number`, `swift_bic` |
 | **Healthcare** (7) | `cpt_code`, `dea_number`, `health_plan_id`, `icd_code`, `mrn`, `npi`, `patient_id` |
 | **Biometric** (3) | `biometric_id`, `face_id`, `fingerprint_id` |
+
+**Removed regional types (0.26.1).** The regional `PIIType` enum previously declared
+five types with no backing pattern anywhere in `pii_patterns.py` — they were listed
+in `get_supported_types()`'s vocabulary but could never actually be matched. Each was
+resolved individually:
+
+- `name`, `address` — **removed.** Free-text personal names and postal addresses
+  can't be reliably matched with a regex; that needs an NER model, which this
+  detector doesn't have. A low-precision regex here would flag ordinary prose as
+  PII (or miss most real addresses/names), which is worse than not claiming the
+  type at all.
+- `ssn_no_dashes` — **removed.** The existing `ssn` pattern's separators are already
+  optional (`\d{3}[-\s]?\d{2}[-\s]?\d{4}`), so it already matches unformatted 9-digit
+  input under the `ssn` label. A second type for the identical span wouldn't add
+  detection coverage — worse, `PIIDetector.redact()`'s reversed-replacement loop
+  assumes matches don't share a span, and two same-span matches corrupt its output
+  (confirmed today, rarely, when a bare 9-digit number happens to pass both the
+  `ssn` and `tfn` checksums — see `test_pii_type_parity.py`). Adding `ssn_no_dashes`
+  would have turned that from a rare coincidence into a routine occurrence on every
+  unformatted SSN.
+- `phone_generic`, `url_with_pii` — **added a real pattern.** Both are reliable,
+  keyword-gated heuristics in the same style already used elsewhere in this file
+  (`bank_account`, `mrn`, `patient_id`): `phone_generic` matches a `Phone:`/`Tel:`/
+  `Mobile:`/`Cell:`-labeled number outside any region-specific format, validated
+  against E.164 digit-count bounds (7–15 digits); `url_with_pii` matches a URL whose
+  query string carries a PII-indicative parameter (`email=`, `ssn=`, `token=`,
+  `api_key=`, `password=`, etc).
+
+`tests/test_pii_type_parity.py` enforces, with no exceptions list, that every
+declared `PIIType` in both the basic and regional enums has a backing pattern —
+this class of bug (declared-but-unmatched type) can't reoccur silently for either
+detector.
 
 ## Compliance Support
 

@@ -43,7 +43,7 @@ def _expected_rows():
 class TestReadmePIITypeListIsGenerated:
     def test_all_regions_type_count_matches_the_documented_total(self):
         detector = PIIDetector(regions=["all"])
-        assert len(detector.get_supported_types()) == 42
+        assert len(detector.get_supported_types()) == 44
 
     def test_readme_table_matches_the_live_detector(self):
         content = README_PATH.read_text()
