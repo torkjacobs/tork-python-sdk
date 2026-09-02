@@ -139,7 +139,7 @@ class TestFlaskPIIDetection:
         tork_flask = TorkFlask()
         result = tork_flask.govern(PII_MESSAGES["phone_message"])
         assert PII_SAMPLES["phone_us"] not in result.output
-        assert "[PHONE_REDACTED]" in result.output
+        assert "[PHONE_US_REDACTED]" in result.output
 
     def test_extension_govern_ssn_pii(self):
         """Test extension governs SSN PII."""
@@ -153,7 +153,7 @@ class TestFlaskPIIDetection:
         tork_flask = TorkFlask()
         result = tork_flask.govern(PII_MESSAGES["credit_card_message"])
         assert PII_SAMPLES["credit_card"] not in result.output
-        assert "[CARD_REDACTED]" in result.output
+        assert "[CREDIT_CARD_REDACTED]" in result.output
 
     def test_extension_clean_text_passthrough(self):
         """Test extension passes through clean text."""

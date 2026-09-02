@@ -7,6 +7,7 @@ PII detection, redaction, and governance with local audit receipts.
 import importlib.metadata
 import json
 import math
+import os
 import re
 import hashlib
 import secrets
@@ -21,7 +22,9 @@ from enum import Enum
 from typing import Dict, List, Optional, Pattern, Set
 import time
 
-__version__ = "0.25.0"
+from .detectors.pii_patterns import PIIDetector as _RegionalPIIDetector
+
+__version__ = "0.26.0"
 
 
 def _sdk_version() -> str:
@@ -49,6 +52,26 @@ class PIIType(str, Enum):
     PASSPORT = "passport"
     DRIVERS_LICENSE = "drivers_license"
     BANK_ACCOUNT = "bank_account"
+
+
+class _RegionalPIITypeLabel(str):
+    """A PII type label produced by the regional detector (detectors/pii_patterns.py).
+
+    Its 50+ types (e.g. "iban", "tfn", "nhs_uk") live in a separate Enum
+    that isn't a subclass of this module's PIIType, so a bare `str` is the
+    only thing both detectors' labels have in common. Code written before
+    the regional detector existed does `t.value` on the assumption `t` is
+    always a PIIType (str, Enum) member -- e.g. Tork.govern()'s attestation
+    payload, the django/flask adapters. Exposing `.value` here (returning
+    the label itself, exactly like Enum.value does) lets that code keep
+    working unmodified for either detector. Equality/hashing/`in` all fall
+    straight through to str, so `PIIType.SSN in result.pii.types` and
+    `"iban" in result.pii.types` both still work.
+    """
+
+    @property
+    def value(self) -> str:
+        return str(self)
 
 
 class GovernanceAction(str, Enum):
@@ -226,6 +249,32 @@ def _warn_api_key_reporting(stacklevel: int = 2) -> None:
     warnings.warn(_API_KEY_REPORTING_MESSAGE, UserWarning, stacklevel=stacklevel + 1)
 
 
+# Valid values for TorkConfig.detector / the TORK_PII_DETECTOR env var.
+#   "regional" (default) -- tork_governance.detectors.pii_patterns.PIIDetector:
+#       50+ region-aware types (US/AU/EU/UK + universal/financial/
+#       healthcare/biometric) with checksum validation on the types that
+#       have one (SSN, credit card, IBAN, TFN, NHS, ...).
+#   "basic" -- the original 10-type PII_PATTERNS detector below, with no
+#       checksum validation. Restores pre-DECIDED-SDK-REGIONAL-DETECTOR-IS-
+#       THE-RUNTIME-PATH behavior exactly, for callers who relied on it.
+_VALID_PII_DETECTORS = frozenset({"basic", "regional"})
+_DEFAULT_PII_DETECTOR = "regional"
+_PII_DETECTOR_ENV_VAR = "TORK_PII_DETECTOR"
+
+
+def _resolve_detector_name(requested: Optional[str]) -> str:
+    """Constructor option wins over the env var, which wins over the
+    ("regional") default. Raises ValueError on an unrecognised name so a
+    typo (e.g. "basi") fails loudly at construction time rather than
+    silently falling back."""
+    name = requested or os.environ.get(_PII_DETECTOR_ENV_VAR) or _DEFAULT_PII_DETECTOR
+    if name not in _VALID_PII_DETECTORS:
+        raise ValueError(
+            f"detector must be one of {sorted(_VALID_PII_DETECTORS)}, got {name!r}"
+        )
+    return name
+
+
 @dataclass
 class TorkConfig:
     """Configuration for Tork client.
@@ -241,11 +290,16 @@ class TorkConfig:
             never input/output text or PII values. See GovernanceResult.report
             for the outcome of a given call. Providing a value emits a
             UserWarning (once per process) describing exactly what is sent.
+        detector: Which PII detector govern() and scan_tool_result() use:
+            "regional" (default) or "basic". Falls back to the
+            TORK_PII_DETECTOR env var, then to "regional", when left as
+            None. See _resolve_detector_name.
     """
     policy_version: str = "1.0.0"
     default_action: GovernanceAction = GovernanceAction.REDACT
     custom_patterns: Optional[Dict[str, Pattern]] = None
     api_key: Optional[str] = None
+    detector: Optional[str] = None
 
     def __post_init__(self):
         if self.api_key:
@@ -253,6 +307,7 @@ class TorkConfig:
             # dataclass-generated __init__ (2) -> whoever constructed the
             # config (3) — that construction site is the customer's line.
             _warn_api_key_reporting(stacklevel=3)
+        self.detector = _resolve_detector_name(self.detector)
 
 
 # PII Detection Patterns
@@ -284,6 +339,21 @@ PII_PATTERNS: Dict[PIIType, tuple] = {
     PIIType.DATE_OF_BIRTH: (
         re.compile(r'\b(?:0[1-9]|1[0-2])/(?:0[1-9]|[12]\d|3[01])/(?:19|20)\d{2}\b'),
         '[DOB_REDACTED]'
+    ),
+    # Ported verbatim from tork-js-sdk/src/pii.ts PII_PATTERNS (passport,
+    # drivers_license, bank_account) -- same sources, same semantics, only
+    # the /g flag dropped (Python's finditer()/sub() already act globally).
+    PIIType.PASSPORT: (
+        re.compile(r'\b[A-Z]{1,2}\d{6,9}\b'),
+        '[PASSPORT_REDACTED]'
+    ),
+    PIIType.DRIVERS_LICENSE: (
+        re.compile(r'\b[A-Z]\d{7,14}\b'),
+        '[DL_REDACTED]'
+    ),
+    PIIType.BANK_ACCOUNT: (
+        re.compile(r'\b\d{8,17}\b'),
+        '[ACCOUNT_REDACTED]'
     ),
 }
 
@@ -678,6 +748,135 @@ def detect_pii(
     )
 
 
+_regional_detector_lock = threading.Lock()
+_regional_detector_instance: Optional[_RegionalPIIDetector] = None
+
+
+def _regional_detector() -> _RegionalPIIDetector:
+    """Lazily-built, process-wide PIIDetector(regions=['all']) singleton --
+    building it (50+ compiled patterns) is not free, and every regional
+    detect_pii_regional() call shares the same one."""
+    global _regional_detector_instance
+    if _regional_detector_instance is None:
+        with _regional_detector_lock:
+            if _regional_detector_instance is None:
+                _regional_detector_instance = _RegionalPIIDetector(regions=['all'])
+    return _regional_detector_instance
+
+
+# Regional PIIType values (detectors/pii_patterns.py) whose pattern carries
+# real checksum/format validation rather than the trivial `lambda m: True`
+# most entries use. Mirrors which US_PATTERNS/AU_PATTERNS/EU_PATTERNS/
+# UK_PATTERNS/FINANCIAL_PATTERNS/HEALTHCARE_PATTERNS entries pass a real
+# validator (_validate_ssn, _validate_iban, _validate_credit_card, ...)
+# there. Used only to break ties between overlapping matches of different
+# types at (or near) the same span: a checksum pass is materially stronger
+# evidence than an unvalidated pattern hit (e.g. a Luhn-valid credit card
+# number vs. the same digits also matching the unvalidated EU phone
+# pattern), so it wins the overlap.
+_REGIONAL_CHECKSUM_VALIDATED_TYPES = frozenset({
+    "ssn", "medicare_au", "tfn", "abn", "iban", "nhs_uk", "nino_uk",
+    "credit_card", "routing_number", "npi", "dea_number",
+})
+
+
+def _resolve_overlapping_matches(raw_matches: List) -> List:
+    """Running all-regions patterns simultaneously means two different
+    types (e.g. phone_us and phone_eu, or a financial digit-run pattern and
+    a credit card) can legitimately match overlapping spans of the same
+    text -- PIIDetector.detect()/redact() has no opinion on this and will
+    happily hand back overlapping matches, which corrupts the redacted
+    text if spliced in naively (two replacements racing over the same
+    characters). Resolve by priority, highest first: checksum-validated
+    type, then longer match, then earlier start; a candidate is kept only
+    if it doesn't overlap anything already kept. This is local to the
+    regional path -- pii_patterns.py itself (and its own direct
+    region-scoped tests) is untouched.
+    """
+    def priority(match):
+        validated = match.pii_type.value in _REGIONAL_CHECKSUM_VALIDATED_TYPES
+        length = match.end - match.start
+        return (0 if validated else 1, -length, match.start)
+
+    resolved = []
+    for match in sorted(raw_matches, key=priority):
+        if not any(match.start < kept.end and kept.start < match.end for kept in resolved):
+            resolved.append(match)
+    resolved.sort(key=lambda m: m.start)
+    return resolved
+
+
+def detect_pii_regional(
+    text: str,
+    custom_patterns: Optional[Dict[str, Pattern]] = None,
+) -> PIIResult:
+    """Detect PII with the regional, checksum-validated detector
+    (tork_governance.detectors.pii_patterns.PIIDetector, all regions):
+    50+ US/AU/EU/UK/universal/financial/healthcare/biometric types instead
+    of the basic detector's 10, with checksum validation on the types that
+    have one (SSN, IBAN, TFN, NHS, credit card, ...) so a lookalike that
+    fails the checksum is not flagged.
+
+    Same PIIResult shape as detect_pii(), so callers of either don't need
+    to special-case which one produced a given result. Masking uses each
+    type's own redaction label from pii_patterns.py (the same
+    "[TYPE_REDACTED]" convention as the basic detector, e.g.
+    "[IBAN_REDACTED]", "[TFN_REDACTED]"). Overlapping matches across
+    regions/types are resolved (see _resolve_overlapping_matches) before
+    redaction, so this never produces spliced/corrupted output the way
+    naively redacting every raw match would.
+
+    This is the detector DECIDED-SDK-REGIONAL-DETECTOR-IS-THE-RUNTIME-PATH
+    made the default for Tork.govern() / Tork.scan_tool_result(); the
+    module-level detect_pii() above is unaffected and stays on the basic
+    10-type detector as before.
+    """
+    detector = _regional_detector()
+    raw_matches = _resolve_overlapping_matches(detector.detect(text))
+
+    matches: List[PIIMatch] = []
+    detected_types: Set[str] = set()
+    redacted_text = text
+    for raw_match in reversed(raw_matches):
+        config = detector.patterns.get(raw_match.pii_type, {})
+        redaction = config.get('redaction', f'[{raw_match.pii_type.value.upper()}_REDACTED]')
+        redacted_text = redacted_text[:raw_match.start] + redaction + redacted_text[raw_match.end:]
+
+    for raw_match in raw_matches:
+        label = _RegionalPIITypeLabel(raw_match.pii_type.value)
+        detected_types.add(label)
+        matches.append(PIIMatch(
+            type=label,
+            value='[REDACTED]',
+            start_index=raw_match.start,
+            end_index=raw_match.end,
+        ))
+
+    if custom_patterns:
+        for name, pattern in custom_patterns.items():
+            redacted_text = pattern.sub(f'[{name.upper()}_REDACTED]', redacted_text)
+
+    return PIIResult(
+        has_pii=len(matches) > 0,
+        types=list(detected_types),
+        count=len(matches),
+        matches=matches,
+        redacted_text=redacted_text,
+    )
+
+
+def _detect_pii_with(
+    detector_name: str,
+    text: str,
+    custom_patterns: Optional[Dict[str, Pattern]] = None,
+) -> PIIResult:
+    """Dispatch to the basic or regional detector by name (TorkConfig.detector,
+    already resolved by _resolve_detector_name -- always "basic" or "regional")."""
+    if detector_name == "basic":
+        return detect_pii(text, custom_patterns)
+    return detect_pii_regional(text, custom_patterns)
+
+
 def redact_pii(text: str) -> str:
     """Convenience function to redact PII from text."""
     result = detect_pii(text)
@@ -700,7 +899,8 @@ class Tork:
         config: Optional[TorkConfig] = None,
         api_key: Optional[str] = None,
         policy_version: str = "1.0.0",
-        default_action: GovernanceAction = GovernanceAction.REDACT
+        default_action: GovernanceAction = GovernanceAction.REDACT,
+        detector: Optional[str] = None,
     ):
         if config:
             self.config = config
@@ -712,7 +912,8 @@ class Tork:
             self.config = TorkConfig(
                 policy_version=policy_version,
                 default_action=default_action,
-                api_key=api_key
+                api_key=api_key,
+                detector=detector,
             )
 
         self._stats = {
@@ -749,8 +950,10 @@ class Tork:
         """
         start_time = time.time_ns()
 
-        # Detect PII
-        pii = detect_pii(input_text, self.config.custom_patterns)
+        # Detect PII -- regional by default (DECIDED-SDK-REGIONAL-DETECTOR-
+        # IS-THE-RUNTIME-PATH); TorkConfig.detector == "basic" restores the
+        # original 10-type detector.
+        pii = _detect_pii_with(self.config.detector, input_text, self.config.custom_patterns)
 
         # Determine action and output
         if pii.has_pii:
@@ -928,6 +1131,14 @@ class Tork:
 
         start_time = time.time_ns()
 
+        # Same basic/regional choice as govern() (self.config.detector),
+        # not the standalone scan_tool_result() function's own basic
+        # default -- DECIDED-SDK-REGIONAL-DETECTOR-IS-THE-RUNTIME-PATH.
+        detector_name = self.config.detector
+
+        def _pii_detector(text, patterns):
+            return _detect_pii_with(detector_name, text, patterns)
+
         scan = _scan_tool_result(
             tool_name,
             payload,
@@ -935,6 +1146,7 @@ class Tork:
             block_on_injection=block_on_injection,
             custom_patterns=custom_patterns or self.config.custom_patterns,
             max_depth=max_depth,
+            pii_detector=_pii_detector,
         )
 
         # Fixed mapping, deliberately NOT config.default_action: unlike

@@ -122,7 +122,7 @@ class TestGuardrailsPIIDetection:
         validator = TorkValidator()
         result = validator.validate(PII_MESSAGES["phone_message"])
         assert PII_SAMPLES["phone_us"] not in result["value"]
-        assert "[PHONE_REDACTED]" in result["value"]
+        assert "[PHONE_US_REDACTED]" in result["value"]
 
     def test_validator_govern_ssn_pii(self):
         """Test validator detects and redacts SSN PII."""
@@ -136,7 +136,7 @@ class TestGuardrailsPIIDetection:
         validator = TorkValidator()
         result = validator.validate(PII_MESSAGES["credit_card_message"])
         assert PII_SAMPLES["credit_card"] not in result["value"]
-        assert "[CARD_REDACTED]" in result["value"]
+        assert "[CREDIT_CARD_REDACTED]" in result["value"]
 
     def test_validator_govern_clean_text(self):
         """Test validator passes through clean text unchanged."""

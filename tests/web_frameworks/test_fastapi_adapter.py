@@ -147,7 +147,7 @@ class TestFastAPIPIIDetection:
         dep = TorkFastAPIDependency()
         result = dep.govern(PII_MESSAGES["phone_message"])
         assert PII_SAMPLES["phone_us"] not in result.output
-        assert "[PHONE_REDACTED]" in result.output
+        assert "[PHONE_US_REDACTED]" in result.output
 
     def test_dependency_govern_ssn_pii(self):
         """Test dependency detects and governs SSN PII."""
@@ -161,7 +161,7 @@ class TestFastAPIPIIDetection:
         dep = TorkFastAPIDependency()
         result = dep.govern(PII_MESSAGES["credit_card_message"])
         assert PII_SAMPLES["credit_card"] not in result.output
-        assert "[CARD_REDACTED]" in result.output
+        assert "[CREDIT_CARD_REDACTED]" in result.output
 
     def test_dependency_clean_text_passthrough(self):
         """Test dependency passes through clean text."""

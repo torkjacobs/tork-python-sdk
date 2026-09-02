@@ -40,9 +40,17 @@ Python idiom but preserve the same semantics as the TypeScript source.
 
 import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Pattern, Tuple
+from typing import Any, Callable, Dict, List, Optional, Pattern, Tuple
 
-from .core import PIIType, detect_pii
+from .core import PIIResult, PIIType, detect_pii
+
+# Signature every PII detector plugged into scan_tool_result() must match:
+# (text, custom_patterns) -> PIIResult. Defaults to core.detect_pii (the
+# basic 10-type detector) so the standalone scan_tool_result() function's
+# behavior is unchanged; Tork.scan_tool_result() passes one bound to
+# TorkConfig.detector instead (DECIDED-SDK-REGIONAL-DETECTOR-IS-THE-
+# RUNTIME-PATH).
+PIIDetectorFn = Callable[[str, Optional[Dict[str, Pattern]]], PIIResult]
 
 # ============================================================================
 # Types
@@ -208,18 +216,19 @@ def _scan_string(
     location: str,
     custom_patterns: Optional[Dict[str, Pattern]],
     findings: List[ToolResultFinding],
+    pii_detector: PIIDetectorFn,
 ) -> str:
-    """Scan one string: PII (via the shared detector) then injection
+    """Scan one string: PII (via the configured detector) then injection
     heuristics. Returns the masked string plus any findings, both keyed to
     `location`."""
-    pii = detect_pii(text, custom_patterns)
+    pii = pii_detector(text, custom_patterns)
 
     if pii.count > 0:
         # Counts per type, emitted in a stable (sorted) order so two runs
         # over the same payload produce identical findings.
         per_type: Dict[str, int] = {}
         for match in pii.matches:
-            type_value = match.type.value if isinstance(match.type, PIIType) else match.type
+            type_value = match.type.value if isinstance(match.type, PIIType) else str(match.type)
             per_type[type_value] = per_type.get(type_value, 0) + 1
         for type_value in sorted(per_type.keys()):
             findings.append(ToolResultFinding(kind="pii", type=type_value, count=per_type[type_value], location=location))
@@ -248,6 +257,7 @@ def _walk(
     custom_patterns: Optional[Dict[str, Pattern]],
     findings: List[ToolResultFinding],
     seen: set,
+    pii_detector: PIIDetectorFn,
 ) -> Any:
     """Walk the payload, scanning every string. Returns a structure with PII
     masked in place; sub-trees with nothing to mask keep their original
@@ -258,7 +268,7 @@ def _walk(
     JSON number is NOT detected. Cycles are left as-is and not re-entered.
     """
     if isinstance(value, str):
-        return _scan_string(value, location, custom_patterns, findings)
+        return _scan_string(value, location, custom_patterns, findings, pii_detector)
 
     if depth >= max_depth or value is None or not isinstance(value, (dict, list)):
         return value
@@ -272,7 +282,7 @@ def _walk(
         changed = False
         out = []
         for index, item in enumerate(value):
-            next_item = _walk(item, f"{location}[{index}]", depth + 1, max_depth, custom_patterns, findings, seen)
+            next_item = _walk(item, f"{location}[{index}]", depth + 1, max_depth, custom_patterns, findings, seen, pii_detector)
             if next_item is not item:
                 changed = True
             out.append(next_item)
@@ -281,7 +291,7 @@ def _walk(
     changed = False
     out_dict: Dict[str, Any] = {}
     for key, item in value.items():
-        next_item = _walk(item, _child_path(location, key), depth + 1, max_depth, custom_patterns, findings, seen)
+        next_item = _walk(item, _child_path(location, key), depth + 1, max_depth, custom_patterns, findings, seen, pii_detector)
         if next_item is not item:
             changed = True
         out_dict[key] = next_item
@@ -300,6 +310,7 @@ def scan_tool_result(
     block_on_injection: bool = False,
     custom_patterns: Optional[Dict[str, Pattern]] = None,
     max_depth: int = DEFAULT_MAX_DEPTH,
+    pii_detector: Optional[PIIDetectorFn] = None,
 ) -> ToolResultScanResult:
     """Scan a tool result for PII and prompt injection before it is
     appended to model context. Pure, synchronous, on-device: makes no
@@ -323,12 +334,20 @@ def scan_tool_result(
             they can change `sanitized` without producing a finding.
         max_depth: Maximum nesting depth to walk. Deeper values are passed
             through unscanned and unmodified. Default 32.
+        pii_detector: PII detector to scan with, as (text, custom_patterns)
+            -> PIIResult. Defaults to core.detect_pii (the basic 10-type
+            detector) -- calling this standalone function directly keeps
+            its original behavior. `Tork.scan_tool_result` passes one bound
+            to `TorkConfig.detector` instead, so it follows the same
+            basic/regional choice as `Tork.govern()`.
 
     For the receipt-linked form (attested_by='client', capture_mode='edge'),
     use `Tork.scan_tool_result`, which wraps this and records the scan.
     """
+    if pii_detector is None:
+        pii_detector = detect_pii
     findings: List[ToolResultFinding] = []
-    sanitized = _walk(payload, "$", 0, max_depth, custom_patterns, findings, set())
+    sanitized = _walk(payload, "$", 0, max_depth, custom_patterns, findings, set(), pii_detector)
 
     injection_count = sum(f.count for f in findings if f.kind == "injection")
     blocked = bool(block_on_injection) and injection_count > 0

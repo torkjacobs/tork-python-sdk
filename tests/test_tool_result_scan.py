@@ -60,6 +60,44 @@ class TestScanToolResultPII:
         ]
 
 
+class TestScanToolResultNewPIITypes:
+    """passport / drivers_license / bank_account were declared PIIType
+    values with no PII_PATTERNS entry (SDK-PYTHON-PII-DETECTOR-DROPS-THREE-
+    DECLARED-TYPES): they passed through scan_tool_result() unflagged and
+    unmasked. These fixtures pin the fix at the tool-result-scan layer,
+    mirroring the PII fixtures above."""
+
+    def test_masks_and_flags_a_passport_number(self):
+        result = scan_tool_result(
+            "lookup_traveler",
+            {"content": [{"type": "text", "text": "Passport AB1234567 on file"}]},
+        )
+        assert result.sanitized["content"][0]["text"] == "Passport [PASSPORT_REDACTED] on file"
+        assert [(f.kind, f.type, f.count, f.location) for f in result.findings] == [
+            ("pii", "passport", 1, "$.content[0].text"),
+        ]
+
+    def test_masks_and_flags_a_drivers_license_number(self):
+        result = scan_tool_result(
+            "verify_identity",
+            {"content": [{"type": "text", "text": "License A1234567890 verified"}]},
+        )
+        assert result.sanitized["content"][0]["text"] == "License [DL_REDACTED] verified"
+        assert [(f.kind, f.type, f.count, f.location) for f in result.findings] == [
+            ("pii", "drivers_license", 1, "$.content[0].text"),
+        ]
+
+    def test_masks_and_flags_a_bank_account_number(self):
+        result = scan_tool_result(
+            "get_payout_details",
+            {"content": [{"type": "text", "text": "Account number: 123456789012 on file"}]},
+        )
+        assert result.sanitized["content"][0]["text"] == "Account number: [ACCOUNT_REDACTED] on file"
+        assert [(f.kind, f.type, f.count, f.location) for f in result.findings] == [
+            ("pii", "bank_account", 1, "$.content[0].text"),
+        ]
+
+
 class TestScanToolResultInjectionHeuristics:
     def test_flags_an_injection_phrase_and_labels_it_heuristic(self):
         result = scan_tool_result(

@@ -119,7 +119,7 @@ class TestDifyPIIDetection:
         node = TorkDifyNode()
         result = node.process({"query": PII_MESSAGES["phone_message"]})
         assert PII_SAMPLES["phone_us"] not in result["governed_text"]
-        assert "[PHONE_REDACTED]" in result["governed_text"]
+        assert "[PHONE_US_REDACTED]" in result["governed_text"]
 
     def test_node_govern_ssn_pii(self):
         """Test node detects and redacts SSN PII."""
@@ -133,7 +133,7 @@ class TestDifyPIIDetection:
         node = TorkDifyNode()
         result = node.process({"query": PII_MESSAGES["credit_card_message"]})
         assert PII_SAMPLES["credit_card"] not in result["governed_text"]
-        assert "[CARD_REDACTED]" in result["governed_text"]
+        assert "[CREDIT_CARD_REDACTED]" in result["governed_text"]
 
     def test_node_govern_clean_text(self):
         """Test node passes through clean text unchanged."""

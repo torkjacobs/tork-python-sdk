@@ -5,6 +5,35 @@ All notable changes to the Tork Governance Python SDK will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.26.0] - 2026-09-02
+
+### Fixed
+- **SDK-PYTHON-PII-DETECTOR-DROPS-THREE-DECLARED-TYPES.** `PIIType` declared
+  10 values but `PII_PATTERNS` only had regexes for 7 — `passport`,
+  `drivers_license`, and `bank_account` passed through `govern()` and
+  `scan_tool_result()` completely unflagged and unmasked. Added the three
+  missing patterns, ported verbatim from `tork-js-sdk/src/pii.ts`'s
+  `PII_PATTERNS` (same regex sources, same redaction labels, only the `/g`
+  flag dropped). A new parity test asserts every `PIIType` has a pattern and
+  that fixtures shared with the JS `detectPII` test suite produce the same
+  type labels in both SDKs.
+
+### Changed
+- **DECIDED-SDK-REGIONAL-DETECTOR-IS-THE-RUNTIME-PATH.** `Tork.govern()` and
+  `Tork.scan_tool_result()` now default to the regional, checksum-validated
+  detector (`tork_governance.detectors.pii_patterns`, 42 types across
+  US/AU/EU/UK + universal/financial/healthcare/biometric) instead of the
+  original 10-type detector — previously that detector was exercised only by
+  its own direct tests and never wired into the governed path. Set
+  `detector="basic"` (`Tork(detector=...)`, `TorkConfig(detector=...)`, or
+  the `TORK_PII_DETECTOR=basic` env var) to restore the original 10-type
+  detector's behavior exactly. The module-level `detect_pii()` function is
+  unchanged and stays on the basic detector regardless of this setting.
+  Masking keeps the existing `[TYPE_REDACTED]` convention. See the README's
+  PII Detection section for the full regional type list and a note for
+  other-language SDK ports on what "parity" now means given Python's wider
+  vocabulary.
+
 ## [0.23.0] - 2026-07-16
 
 ### Changed

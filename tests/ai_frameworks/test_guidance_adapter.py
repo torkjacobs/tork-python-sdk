@@ -97,7 +97,7 @@ class TestGuidancePIIDetection:
         program = TorkGuidanceProgram()
         result = program.govern(PII_MESSAGES["phone_message"])
         assert PII_SAMPLES["phone_us"] not in result
-        assert "[PHONE_REDACTED]" in result
+        assert "[PHONE_US_REDACTED]" in result
 
     def test_govern_ssn_pii(self):
         """Test SSN PII is detected and redacted."""
@@ -111,7 +111,7 @@ class TestGuidancePIIDetection:
         program = TorkGuidanceProgram()
         result = program.govern(PII_MESSAGES["credit_card_message"])
         assert PII_SAMPLES["credit_card"] not in result
-        assert "[CARD_REDACTED]" in result
+        assert "[CREDIT_CARD_REDACTED]" in result
 
     def test_govern_clean_text(self):
         """Test clean text passes through unchanged."""

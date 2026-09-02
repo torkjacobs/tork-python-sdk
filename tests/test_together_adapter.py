@@ -66,7 +66,7 @@ class TestTorkTogetherClient:
 
         result = client.chat([{"role": "user", "content": "Hello"}])
 
-        assert "[PHONE_REDACTED]" in result["choices"][0]["message"]["content"]
+        assert "[PHONE_US_REDACTED]" in result["choices"][0]["message"]["content"]
 
     def test_pii_redaction_in_messages(self):
         """Test PII redaction for email in messages."""

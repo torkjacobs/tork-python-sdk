@@ -255,7 +255,7 @@ class TestStarlettePIIDetection:
         receipts = []
         result = _govern_value(PII_MESSAGES["phone_message"], tork, receipts, "input")
         assert PII_SAMPLES["phone_us"] not in result
-        assert "[PHONE_REDACTED]" in result
+        assert "[PHONE_US_REDACTED]" in result
 
     def test_govern_value_ssn_pii(self):
         """Test _govern_value governs SSN PII."""
@@ -271,7 +271,7 @@ class TestStarlettePIIDetection:
         receipts = []
         result = _govern_value(PII_MESSAGES["credit_card_message"], tork, receipts, "input")
         assert PII_SAMPLES["credit_card"] not in result
-        assert "[CARD_REDACTED]" in result
+        assert "[CREDIT_CARD_REDACTED]" in result
 
     def test_govern_value_clean_text(self):
         """Test _govern_value passes through clean text."""

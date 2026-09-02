@@ -306,6 +306,9 @@ class TestDetectPII:
 
     def test_detect_credit_card(self):
         """Test credit card detection"""
+        # Standalone detect_pii() stays on the basic 10-type detector
+        # regardless of TorkConfig.detector -- only Tork.govern()/
+        # scan_tool_result() default to the regional one.
         result = detect_pii("Card: 4111-1111-1111-1111")
         assert result.has_pii == True
         assert PIIType.CREDIT_CARD in result.types
@@ -477,7 +480,7 @@ class TestTorkGovern:
         tork = Tork()
         result = tork.govern("Card: 4111-1111-1111-1111")
         assert result.action == GovernanceAction.REDACT
-        assert "[CARD_REDACTED]" in result.output
+        assert "[CREDIT_CARD_REDACTED]" in result.output
 
     def test_govern_receipt_generated(self):
         """Test receipt is generated"""
@@ -533,11 +536,14 @@ class TestTorkGovern:
 
     def test_govern_with_custom_patterns(self):
         """Test govern with custom patterns in config"""
+        # 4 digits, not 8: an 8-17 digit run is now claimed by the
+        # bank_account pattern (matches JS's own detectPII test, which uses
+        # the same 4-digit workaround for the same reason).
         config = TorkConfig(
-            custom_patterns={"order_id": re.compile(r"ORD-\d{8}")}
+            custom_patterns={"order_id": re.compile(r"ORD-\d{4}")}
         )
         tork = Tork(config=config)
-        result = tork.govern("Order: ORD-12345678")
+        result = tork.govern("Order: ORD-1234")
         # Custom patterns are applied in detect_pii, check redacted_text
         assert "[ORDER_ID_REDACTED]" in result.pii.redacted_text
 

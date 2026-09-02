@@ -290,7 +290,7 @@ class TestHaystackAdapter:
         doc.meta = {}
 
         processed = processor.process([doc])
-        assert "[PHONE_REDACTED]" in processed[0].content
+        assert "[PHONE_US_REDACTED]" in processed[0].content
         assert "tork_receipt_id" in processed[0].meta
 
 

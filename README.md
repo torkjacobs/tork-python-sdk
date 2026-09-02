@@ -240,16 +240,50 @@ async def chat(message: str):
 
 ## PII Detection
 
-Detects 50+ PII types across multiple regions:
+`Tork.govern()` and `Tork.scan_tool_result()` run one of two on-device PII detectors,
+chosen by `TorkConfig.detector`, the `Tork(detector=...)` constructor kwarg, or the
+`TORK_PII_DETECTOR` environment variable (constructor kwarg wins, then the env var,
+then the default):
+
+| `detector` | Default? | Type vocabulary | Checksum validation |
+|---|---|---|---|
+| `"regional"` | **Yes** | 42 types across US/AU/EU/UK + universal/financial/healthcare/biometric (`tork_governance.detectors.pii_patterns`) | Yes, on the types that have one (SSN, credit card, IBAN, TFN, NHS, ABN, Medicare, NINO, routing number, NPI, DEA) — a lookalike that fails its checksum is not flagged |
+| `"basic"` | No — opt in | 10 types: `ssn`, `credit_card`, `email`, `phone`, `address`, `ip_address`, `date_of_birth`, `passport`, `drivers_license`, `bank_account` | No |
+
+```python
+from tork_governance import Tork
+
+# Default: the wider, checksum-validated regional detector
+tork = Tork()
+result = tork.govern("IBAN: DE89370400440532013000")
+print(result.pii.types)  # ['iban']
+
+# Opt back into the original 10-type detector
+basic_tork = Tork(detector="basic")
+# ...or: TorkConfig(detector="basic"), or `TORK_PII_DETECTOR=basic` in the environment
+```
+
+**Wider vocabulary than the JS SDK.** `@torknetwork/sdk` (JS) implements only the 10
+basic types above — it has no regional detector. A Python `govern()`/`scan_tool_result()`
+result's `pii.types` (or `tool_result_scan` receipt block finding types) may therefore
+contain labels with no JS-SDK equivalent, e.g. `"iban"`, `"tfn"`, `"nhs_uk"`. Don't
+assume the two SDKs' outputs are directly comparable without accounting for this —
+use `detector="basic"` (or `TORK_PII_DETECTOR=basic`) on the Python side to match the
+JS SDK's exact 10-type vocabulary and behavior byte-for-byte.
+
+Full list of regional types by category, generated from
+`PIIDetector(regions=['all']).get_supported_types()`:
 
 | Category | Types |
 |----------|-------|
-| **US** | SSN, EIN, ITIN, Passport, Driver's License, Phone |
-| **Australia** | TFN, ABN, ACN, Medicare, Driver's License |
-| **EU/UK** | NINO, NHS, IBAN, VAT, National ID |
-| **Financial** | Credit Card, Bank Account, SWIFT/BIC |
-| **Healthcare** | MRN, NPI, DEA, ICD-10 codes |
-| **Universal** | Email, IP Address, URL, DOB, Phone |
+| **US** (6) | `driver_license_us`, `ein`, `itin`, `passport_us`, `phone_us`, `ssn` |
+| **Australia** (5) | `abn`, `acn`, `medicare_au`, `phone_au`, `tfn` |
+| **EU** (5) | `french_ssn`, `german_id`, `iban`, `phone_eu`, `vat_eu` |
+| **UK** (4) | `nhs_uk`, `nino_uk`, `postcode_uk`, `sort_code_uk` |
+| **Universal** (6) | `credit_card`, `date_of_birth`, `email`, `ip_address`, `ipv6_address`, `mac_address` |
+| **Financial** (6) | `bank_account`, `card_expiry`, `crypto_address`, `cvv`, `routing_number`, `swift_bic` |
+| **Healthcare** (7) | `cpt_code`, `dea_number`, `health_plan_id`, `icd_code`, `mrn`, `npi`, `patient_id` |
+| **Biometric** (3) | `biometric_id`, `face_id`, `fingerprint_id` |
 
 ## Compliance Support
 

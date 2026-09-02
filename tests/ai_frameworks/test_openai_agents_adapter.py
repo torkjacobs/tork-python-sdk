@@ -87,7 +87,7 @@ class TestOpenAIAgentsPIIDetection:
         middleware = TorkOpenAIAgentsMiddleware()
         result = middleware.process_input(PII_MESSAGES["phone_message"])
         assert PII_SAMPLES["phone_us"] not in result.output
-        assert "[PHONE_REDACTED]" in result.output
+        assert "[PHONE_US_REDACTED]" in result.output
 
     def test_process_output_ssn_pii(self):
         """Test SSN PII is detected and redacted in output."""
@@ -101,7 +101,7 @@ class TestOpenAIAgentsPIIDetection:
         middleware = TorkOpenAIAgentsMiddleware()
         result = middleware.process_output(PII_MESSAGES["credit_card_message"])
         assert PII_SAMPLES["credit_card"] not in result.output
-        assert "[CARD_REDACTED]" in result.output
+        assert "[CREDIT_CARD_REDACTED]" in result.output
 
     def test_process_input_clean_text(self):
         """Test clean text passes through unchanged."""

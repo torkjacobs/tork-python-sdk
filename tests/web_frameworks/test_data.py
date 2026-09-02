@@ -13,9 +13,9 @@ PII_SAMPLES = {
 # Expected redaction patterns
 EXPECTED_REDACTIONS = {
     "email": "[EMAIL_REDACTED]",
-    "phone": "[PHONE_REDACTED]",
+    "phone": "[PHONE_US_REDACTED]",
     "ssn": "[SSN_REDACTED]",
-    "credit_card": "[CARD_REDACTED]"
+    "credit_card": "[CREDIT_CARD_REDACTED]"
 }
 
 # Sample messages containing PII

@@ -51,11 +51,22 @@ class TestPIIDetection:
         result = tork.govern("Card: 4111-1111-1111-1111")
         assert result.pii.has_pii
         assert PIIType.CREDIT_CARD in result.pii.types
-        assert "[CARD_REDACTED]" in result.output
+        assert "[CREDIT_CARD_REDACTED]" in result.output
 
     def test_detect_phone(self):
         """Test detecting phone number."""
         tork = Tork()
+        result = tork.govern("Call 555-123-4567")
+        assert result.pii.has_pii
+        # Regional detector (the default) reports the region-specific label
+        # rather than core PIIType's generic "phone" -- basic-detector
+        # phone parity is covered separately by test_detect_phone_basic_mode.
+        assert "phone_us" in result.pii.types
+        assert "[PHONE_US_REDACTED]" in result.output
+
+    def test_detect_phone_basic_mode(self):
+        """detector="basic" restores the original generic PIIType.PHONE label."""
+        tork = Tork(detector="basic")
         result = tork.govern("Call 555-123-4567")
         assert result.pii.has_pii
         assert PIIType.PHONE in result.pii.types

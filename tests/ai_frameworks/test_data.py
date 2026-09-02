@@ -10,9 +10,9 @@ PII_SAMPLES = {
 
 EXPECTED_REDACTIONS = {
     "email": "[EMAIL_REDACTED]",
-    "phone_us": "[PHONE_REDACTED]",
+    "phone_us": "[PHONE_US_REDACTED]",
     "ssn": "[SSN_REDACTED]",
-    "credit_card": "[CARD_REDACTED]",  # Note: SDK uses CARD not CREDIT_CARD
+    "credit_card": "[CREDIT_CARD_REDACTED]",  # regional detector's own label (DECIDED-SDK-REGIONAL-DETECTOR-IS-THE-RUNTIME-PATH)
     "medical_record": "[MEDICAL_RECORD_REDACTED]",
 }
 
