@@ -9,6 +9,7 @@ from .core import (
     TorkConfig,
     PIIResult,
     GovernanceResult,
+    GovernedToolResultScanResult,
     Receipt,
     SessionContext,
     AttestationReport,
@@ -20,12 +21,25 @@ from .core import (
     GovernanceAction,
     __version__,
 )
+from .tool_result_scan import (
+    scan_tool_result,
+    build_tool_result_scan_block,
+    scan_pii_types,
+    scan_pii_count,
+    scan_injection_count,
+    INJECTION_HEURISTIC_PREFIX,
+    INJECTION_RULESET,
+    INJECTION_TYPES,
+    ToolResultFinding,
+    ToolResultScanResult,
+)
 
 __all__ = [
     "Tork",
     "TorkConfig",
     "PIIResult",
     "GovernanceResult",
+    "GovernedToolResultScanResult",
     "Receipt",
     "SessionContext",
     "AttestationReport",
@@ -36,4 +50,14 @@ __all__ = [
     "PIIType",
     "GovernanceAction",
     "__version__",
+    "scan_tool_result",
+    "build_tool_result_scan_block",
+    "scan_pii_types",
+    "scan_pii_count",
+    "scan_injection_count",
+    "INJECTION_HEURISTIC_PREFIX",
+    "INJECTION_RULESET",
+    "INJECTION_TYPES",
+    "ToolResultFinding",
+    "ToolResultScanResult",
 ]

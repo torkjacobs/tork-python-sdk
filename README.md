@@ -303,6 +303,40 @@ print(report.reason)      # Why it hasn't succeeded (or its current status)
 report.wait(timeout=5)
 ```
 
+## Scanning tool results
+
+A tool result returned by an MCP server — or any external system you do not control — is untrusted input that is about to be appended to a model's context. `Tork.scan_tool_result()` scans it first, on-device, for PII and prompt injection:
+
+```python
+from tork_governance import Tork
+
+tork = Tork()
+outcome = tork.scan_tool_result(
+    "lookup_customer",
+    tool_result,                       # whatever the server returned
+    "mcp://crm.internal/customers",
+    block_on_injection=True,
+)
+
+if outcome.blocked:
+    print(outcome.reason)              # do not append anything
+else:
+    append_to_context(outcome.sanitized)  # PII masked in place
+
+outcome.findings
+# [ToolResultFinding(kind='pii', type='email', count=1, location='$.content[0].text'),
+#  ToolResultFinding(kind='injection', type='heuristic:instruction_override', count=1, location='$.content[0].text')]
+```
+
+There is also a standalone `scan_tool_result(tool_name, payload, server_uri=None, **options)` function with the same signature (minus the receipt) that returns an object with `sanitized`, `findings`, `blocked`, and `reason`, and produces no receipt.
+
+- **PII uses the same on-device detector as `govern()`** — same patterns, same redaction labels. Matches are masked in place; the payload structure is otherwise unchanged, and a clean payload comes back untouched (same object identity, not just equal).
+- **Injection detection is heuristic.** A conservative pattern set (`tork-injection-heuristics-v1`) covering instruction-override phrases, role reassignment, and exfiltration URLs. Every injection finding is typed `heuristic:<name>` because that is exactly what it is: a regex match over untrusted text, with false positives and false negatives, not a verified determination. Without `block_on_injection`, matches are reported and the result is still returned; with it, `sanitized` is `None` so no masked copy can be appended by accident.
+- **Zero network calls.** The scan is pure and synchronous. The payload never leaves the machine, whether or not an `api_key` is configured.
+- **Recorded on the receipt as counts only.** `receipt.tool_result_scan` carries `attested_by: 'client'`, `capture_mode: 'edge'`, the tool name and server URI, counts by kind and type, the blocked flag, and the SDK version. It never carries the payload, a matched value, or a location path.
+
+**This is a client-side, client-attested control.** The scan runs in your process, and the receipt says so: Tork did not execute it and cannot verify it ran at all — the same honest boundary as every other edge attestation this SDK produces. **Gateway-side enforcement, where a caller cannot skip the scan, is a separate and later control.** Do not read a `tool_result_scan` block as proof that every tool result reaching a model was scanned; read it as a record of the scans a caller chose to run and report.
+
 ## Configuration
 
 ```python

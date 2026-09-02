@@ -21,7 +21,7 @@ from enum import Enum
 from typing import Dict, List, Optional, Pattern, Set
 import time
 
-__version__ = "0.23.0"
+__version__ = "0.25.0"
 
 
 def _sdk_version() -> str:
@@ -112,6 +112,7 @@ class Receipt:
     pii_types: List[PIIType] = field(default_factory=list)
     pii_count: int = 0
     session_context: Optional[SessionContext] = None
+    tool_result_scan: Optional[Dict] = None
 
     def verify(self, input_text: str, output_text: str) -> bool:
         """Verify that input/output match the receipt hashes."""
@@ -169,6 +170,24 @@ class GovernanceResult:
     industry: Optional[str] = None
     session_context: Optional[SessionContext] = None
     report: Optional[AttestationReport] = None
+
+
+@dataclass
+class GovernedToolResultScanResult:
+    """What `Tork.scan_tool_result` returns: the pure scan result, plus the
+    receipt recording it and the outcome of the optional attestation
+    report.
+
+    The four scan fields (`sanitized`, `findings`, `blocked`, `reason`) are
+    exactly the shape of the standalone `scan_tool_result()` function's
+    return value, so either form can be consumed by the same code.
+    """
+    sanitized: object
+    findings: List
+    blocked: bool
+    reason: Optional[str]
+    receipt: Receipt
+    report: AttestationReport
 
 
 _API_KEY_REPORTING_MESSAGE = (
@@ -278,6 +297,40 @@ def hash_text(text: str) -> str:
 def generate_receipt_id() -> str:
     """Generate a unique receipt ID."""
     return f"rcpt_{secrets.token_hex(16)}"
+
+
+def _stable_stringify(value, seen: Optional[Set[int]] = None) -> str:
+    """Deterministic serialisation for hashing a tool-result payload: dict
+    keys sorted, so two structurally identical payloads always hash the
+    same regardless of key insertion order. Cycles collapse to a stable
+    placeholder rather than recursing forever -- a receipt must never fail
+    to be produced because a tool returned something exotic. The output is
+    fed straight into SHA256 and is never stored or sent.
+    """
+    if seen is None:
+        seen = set()
+
+    if value is None:
+        return 'null'
+    if isinstance(value, bool):
+        return 'true' if value else 'false'
+    if isinstance(value, str):
+        return json.dumps(value)
+    if isinstance(value, (int, float)):
+        return str(value) if math.isfinite(value) else '"[non-finite]"'
+
+    obj_id = id(value)
+    if obj_id in seen:
+        return '"[circular]"'
+    seen = seen | {obj_id}
+
+    if isinstance(value, (list, tuple)):
+        return '[' + ','.join(_stable_stringify(item, seen) for item in value) + ']'
+    if isinstance(value, dict):
+        entries = sorted(value.items(), key=lambda kv: kv[0])
+        return '{' + ','.join(f'{json.dumps(k)}:{_stable_stringify(v, seen)}' for k, v in entries) + '}'
+
+    return json.dumps(f"[{type(value).__name__}]")
 
 
 # ── TORK-DNA-v2 canonical form + salted fingerprinting ──────────────────────
@@ -742,61 +795,13 @@ class Tork:
 
         # Optional metadata-only reporting to tork.network. The decision
         # above (action/output/pii/receipt) is already final by this point
-        # and reporting can never change it. Canonical-form/fingerprint
-        # construction is local and stays synchronous; the network call
-        # (and its one retry) runs on a background thread so this method
-        # always returns immediately regardless of endpoint latency, and a
-        # reporting failure never raises into the caller.
-        if self.config.api_key:
-            try:
-                verdict = _ACTION_TO_VERDICT[action]
-                ts, decided_at = _decided_at_pair()
-                canonical = build_canonical(
-                    policy_version=self.config.policy_version,
-                    verdict=verdict,
-                    pii_types=[t.value for t in pii.types],
-                    pii_count=pii.count,
-                    hitl=(action == GovernanceAction.ESCALATE),
-                    ts=ts,
-                )
-                cjson = canonical_json(canonical)
-                salt = generate_fingerprint_salt()
-                fingerprint = compute_salted_fingerprint(cjson, salt)
-            except Exception as exc:
-                report = AttestationReport(
-                    attempted=True,
-                    succeeded=False,
-                    reason=f"failed to build attestation: {type(exc).__name__}: {exc}",
-                )
-            else:
-                report = AttestationReport(
-                    attempted=True,
-                    succeeded=False,
-                    reason="reporting in progress on a background thread; call report.wait() for the confirmed outcome",
-                )
-                thread = threading.Thread(
-                    target=_run_attestation_report,
-                    args=(report,),
-                    kwargs=dict(
-                        api_key=self.config.api_key,
-                        client_event_id=receipt.receipt_id,
-                        verdict=verdict,
-                        canonical_json_str=cjson,
-                        salt=salt,
-                        fingerprint=fingerprint,
-                        decided_at=decided_at,
-                    ),
-                    daemon=True,
-                    name="tork-attestation-report",
-                )
-                report._thread = thread
-                thread.start()
-        else:
-            report = AttestationReport(
-                attempted=False,
-                succeeded=False,
-                reason="api_key not configured; reporting is disabled",
-            )
+        # and reporting can never change it.
+        report = self._start_report(
+            action=action,
+            pii_types=[t.value for t in pii.types],
+            pii_count=pii.count,
+            client_event_id=receipt.receipt_id,
+        )
 
         return GovernanceResult(
             action=action,
@@ -806,6 +811,203 @@ class Tork:
             region=region,
             industry=industry,
             session_context=session_context,
+            report=report,
+        )
+
+    def _start_report(
+        self,
+        *,
+        action: GovernanceAction,
+        pii_types: List[str],
+        pii_count: int,
+        client_event_id: str,
+    ) -> AttestationReport:
+        """Optional metadata-only reporting to tork.network, shared by
+        govern() and scan_tool_result(). The local decision is always
+        already final by the time this is called and reporting can never
+        change it. Canonical-form/fingerprint construction is local and
+        stays synchronous; the network call (and its one retry) runs on a
+        background thread so the caller always returns immediately
+        regardless of endpoint latency, and a reporting failure never
+        raises into it.
+        """
+        if not self.config.api_key:
+            return AttestationReport(
+                attempted=False,
+                succeeded=False,
+                reason="api_key not configured; reporting is disabled",
+            )
+
+        try:
+            verdict = _ACTION_TO_VERDICT[action]
+            ts, decided_at = _decided_at_pair()
+            canonical = build_canonical(
+                policy_version=self.config.policy_version,
+                verdict=verdict,
+                pii_types=pii_types,
+                pii_count=pii_count,
+                hitl=(action == GovernanceAction.ESCALATE),
+                ts=ts,
+            )
+            cjson = canonical_json(canonical)
+            salt = generate_fingerprint_salt()
+            fingerprint = compute_salted_fingerprint(cjson, salt)
+        except Exception as exc:
+            return AttestationReport(
+                attempted=True,
+                succeeded=False,
+                reason=f"failed to build attestation: {type(exc).__name__}: {exc}",
+            )
+
+        report = AttestationReport(
+            attempted=True,
+            succeeded=False,
+            reason="reporting in progress on a background thread; call report.wait() for the confirmed outcome",
+        )
+        thread = threading.Thread(
+            target=_run_attestation_report,
+            args=(report,),
+            kwargs=dict(
+                api_key=self.config.api_key,
+                client_event_id=client_event_id,
+                verdict=verdict,
+                canonical_json_str=cjson,
+                salt=salt,
+                fingerprint=fingerprint,
+                decided_at=decided_at,
+            ),
+            daemon=True,
+            name="tork-attestation-report",
+        )
+        report._thread = thread
+        thread.start()
+        return report
+
+    def scan_tool_result(
+        self,
+        tool_name: str,
+        payload,
+        server_uri: Optional[str] = None,
+        *,
+        block_on_injection: bool = False,
+        custom_patterns: Optional[Dict[str, Pattern]] = None,
+        max_depth: int = 32,
+    ):
+        """Scan a tool result (MCP server response, or any external system's
+        output) for PII and prompt injection BEFORE it is appended to model
+        context, and record the scan on a receipt.
+
+        The scan itself is the pure `scan_tool_result()` function in
+        .tool_result_scan -- on-device, synchronous, zero network calls,
+        using the same PII detector as `govern()`. This method adds the
+        receipt: `receipt.tool_result_scan` carries counts by kind and
+        type, the tool name, the server URI, whether the result was
+        blocked, and the SDK version. It never carries the payload, a
+        matched substring, or a location path.
+
+        This is a CLIENT-SIDE, CLIENT-ATTESTED control: it runs in the
+        caller's process, so the receipt records `attested_by: 'client'`
+        and `capture_mode: 'edge'` -- Tork did not execute this scan and
+        cannot verify it ran at all. Enforcement at the gateway, where a
+        caller cannot skip the scan, is a separate and later control.
+
+        Returns an object with the same four fields as the standalone
+        `scan_tool_result()` function (`sanitized`, `findings`, `blocked`,
+        `reason`), plus `receipt` and `report`.
+        """
+        # Imported here, not at module scope: tool_result_scan imports
+        # PIIType/detect_pii from this module, so a top-level import here
+        # would be circular.
+        from .tool_result_scan import (
+            build_tool_result_scan_block,
+            scan_injection_count,
+            scan_pii_count,
+            scan_pii_types,
+        )
+        from .tool_result_scan import scan_tool_result as _scan_tool_result
+
+        start_time = time.time_ns()
+
+        scan = _scan_tool_result(
+            tool_name,
+            payload,
+            server_uri,
+            block_on_injection=block_on_injection,
+            custom_patterns=custom_patterns or self.config.custom_patterns,
+            max_depth=max_depth,
+        )
+
+        # Fixed mapping, deliberately NOT config.default_action: unlike
+        # govern(), this path always returns masked output when it returns
+        # any, so the action must describe what actually happened to the
+        # tool result. Every SDK mirroring this must use the same mapping.
+        #   blocked            -> deny     (nothing is returned to append)
+        #   injection detected -> escalate (returned, flagged for a human)
+        #   PII masked         -> redact
+        #   nothing found      -> allow
+        pii_types = scan_pii_types(scan.findings)
+        pii_count = scan_pii_count(scan.findings)
+        injection_count = scan_injection_count(scan.findings)
+
+        if scan.blocked:
+            action = GovernanceAction.DENY
+        elif injection_count > 0:
+            action = GovernanceAction.ESCALATE
+        elif pii_count > 0:
+            action = GovernanceAction.REDACT
+        else:
+            action = GovernanceAction.ALLOW
+
+        processing_time_ns = time.time_ns() - start_time
+
+        # Hashes, not content: hash_text is SHA256, so neither the payload
+        # nor the sanitized copy is recoverable from the receipt. A blocked
+        # scan has no output to hash and records the hash of the empty
+        # string.
+        receipt = Receipt(
+            receipt_id=generate_receipt_id(),
+            timestamp=datetime.utcnow().isoformat() + 'Z',
+            input_hash=hash_text(_stable_stringify(payload)),
+            output_hash=hash_text('' if scan.blocked else _stable_stringify(scan.sanitized)),
+            action=action,
+            policy_version=self.config.policy_version,
+            processing_time_ns=processing_time_ns,
+            tool_result_scan=build_tool_result_scan_block(
+                tool_name=tool_name,
+                server_uri=server_uri,
+                result=scan,
+                sdk_version=_sdk_version(),
+            ),
+        )
+
+        self._stats['total_calls'] += 1
+        if pii_count > 0:
+            self._stats['total_pii_detected'] += 1
+        self._stats['total_processing_ns'] += processing_time_ns
+        self._stats['action_counts'][action] += 1
+
+        # Reporting, when an api_key is configured, uses the SAME
+        # attestation contract as govern() and adds no fields to it. The
+        # tool_result_scan block is NOT transmitted: POST
+        # /api/v1/attestations validates a fixed field set and there is no
+        # column for it, so sending it would be silently dropped -- and a
+        # silently dropped block would read, to a caller, exactly like a
+        # recorded one. What the endpoint does receive is the decision this
+        # scan produced (deny/flag/redact/allow) plus the PII type labels
+        # and count, which it already accepts and re-derives.
+        report = self._start_report(
+            action=action,
+            pii_types=pii_types,
+            pii_count=pii_count,
+            client_event_id=receipt.receipt_id,
+        )
+
+        return GovernedToolResultScanResult(
+            sanitized=scan.sanitized,
+            findings=scan.findings,
+            blocked=scan.blocked,
+            reason=scan.reason,
+            receipt=receipt,
             report=report,
         )
 
