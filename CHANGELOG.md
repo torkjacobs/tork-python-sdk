@@ -5,6 +5,30 @@ All notable changes to the Tork Governance Python SDK will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.26.1] - 2026-09-02
+
+### Fixed
+- **SDK-PYTHON-REGIONAL-DETECTOR-DECLARES-FIVE-TYPES-WITH-NO-PATTERN.** The
+  regional `PIIType` enum (`tork_governance.detectors.pii_patterns`, the
+  runtime default since 0.26.0) declared 5 values with no pattern in any
+  per-region dict — `address`, `name`, `phone_generic`, `ssn_no_dashes`,
+  `url_with_pii` were listed in `get_supported_types()`'s vocabulary but
+  could never actually match. Resolved each on its own merits: `name` and
+  `address` were removed (free text needs an NER model, not a regex — a
+  low-precision pattern here would be worse than none). `ssn_no_dashes` was
+  also removed: the existing `ssn` pattern's separators are already
+  optional, so it already matches unformatted 9-digit input; a duplicate
+  type for the identical span doesn't add coverage and corrupts
+  `PIIDetector.redact()`'s reversed-replacement loop, which assumes matches
+  don't share a span (confirmed today as a rare `ssn`/`tfn` checksum
+  coincidence — `ssn_no_dashes` would have made it routine). `phone_generic`
+  and `url_with_pii` got real keyword-gated patterns, in the same style as
+  `bank_account`/`mrn`/`patient_id`. The regional detector now declares 44
+  types, all with patterns. `tests/test_pii_type_parity.py` now enforces
+  full pattern coverage, with no exceptions list, for **both** the basic and
+  regional `PIIType` enums. README's regional type table and total
+  regenerated accordingly.
+
 ## [0.26.0] - 2026-09-02
 
 ### Fixed
