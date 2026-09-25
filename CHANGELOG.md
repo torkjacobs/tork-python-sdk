@@ -5,6 +5,74 @@ All notable changes to the Tork Governance Python SDK will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.27.0] - 2026-09-25
+
+### Added
+- **PII registry bundle 1.2.0 (24 countries, incl. AU TFN/ABN/Medicare).**
+- **The country layer: 24 country profiles, 54 patterns, 20 check digits.** The
+  detector no longer carries a hand-written, US-shaped pattern subset. The
+  patterns, keywords, redaction labels and checksum gates are generated from the
+  cloud's own country registry and consumed verbatim from the SDK bundle
+  (`generated/sdk-registry`, `Registry-Version: 1.2.0`, content
+  `cfd4f61ebaf45e74`). `tork_governance/detectors/pii_registry.py` is a
+  byte-identical copy of the bundle's Python file. Countries covered: AU, US,
+  GB, EU, AE, SA, NG, IN, JP, CN, KR, BR, CA, ZA, GH, IT, KE, MU, MX, MY, PK,
+  SG, TH, ID. Bundle 1.2.0 adds Australia's TFN, ABN and Medicare number as
+  `alwaysOn` patterns (rule 1a): they now run on every document regardless of
+  country activation, closing the "AU bundle gap" — previously Australia's own
+  country activation signals never fired for these three shapes, so the SDK
+  detected an ACN or a +61 phone number and nothing else. TFN and ABN gate on a
+  required checksum with a near-miss fallback; Medicare's checksum is advisory
+  only and never rejects a match. `tork_governance/detectors/pii_country.py`
+  now runs the bundle's `always_on` patterns first, before the activated
+  country patterns, per rule 1a.
+- New module `tork_governance.detectors.pii_country`, implementing the seven
+  rules the bundle's README marks **SDK**: activation, regex, the keyword gate
+  (asymmetric 60/40 substring, symmetric 60 whole-word), the checksum gate,
+  supersession, the near-miss fallback, the column-header verdict and the
+  nearest-label veto. Everything -- every window, every keyword list, the
+  activation signals, the country map, the table constants and the reference
+  labels -- is read off the bundle; nothing is hard-coded here.
+- New module `tork_governance.detectors.pii_checksums`: twenty check digits,
+  the nine `kind: "custom"` ones ported by hand from
+  `landing/lib/pii/checksums.ts`, each verified against the issuing authority's
+  own worked example where one is published.
+- Exported additively from `tork_governance.detectors`: `detect_country_pii`,
+  `detect_country_pii_with_ranges`, `infer_regions`, `patterns_for_regions`,
+  `apply_redactions`, `CountryPIIMatch`, `CHECKSUM_FUNCTIONS`,
+  `TORK_PII_PATTERNS`, `TORK_PII_COUNTRIES`, `TORK_PII_SIGNALS`,
+  `TORK_PII_REGISTRY_VERSION`, `TORK_PII_CONTENT_HASH`. Nothing was removed or
+  renamed; `TORK_PII_DETECTOR=basic` still selects the old path.
+
+### Notes
+- Every regex is compiled once at import, not per call, as the bundle's
+  per-SDK guidance asks.
+- Parity is measured against the cloud's own golden snapshot, not against this
+  implementation: 2,092 inputs, every country-corpus sentence for all 249 ISO
+  jurisdictions plus the whole 1,523-line business false-positive corpus. The
+  country layer reproduces the cloud on all of them except where a layer this
+  bundle deliberately excludes claimed the span, and the fixture records every
+  such case with its cause rather than hiding it.
+- Checksums the issuing authority does not publish stay **advisory** and never
+  reject a match: `ca_sin`, `emirates_id`, `de_tax_id`, `kr_rrn`,
+  `sa_national_id`. Korea stopped issuing check digits on 20 Oct 2020.
+- Still cloud-only, by design: the universal (L0) patterns, the slot, context,
+  gravity and name layers, industry profiles and org configuration.
+- **Indonesia is the country 1.1.0 added, and it is the one that proves the
+  whole-word rule.** `id_nik`'s only short spellings -- NIK, KTP, NPWP -- are
+  `wholeWordKeywords`, not ordinary keywords, because `nik` sits inside
+  *teknik*, *elektronik*, *klinik* and *pabrik*. Matching them by substring
+  would open the gate on an Indonesian sales ledger; matching them on a word
+  boundary catches "NIK 3171010101900001" and leaves *teknik* alone.
+- **FLAGGED, upstream: bundle 1.1.0 cannot detect Australia's TFN, ABN or
+  Medicare number.** `checksums.json` declares `au_tfn` and `au_abn` as
+  `requiredBy` and `au_medicare` as `advisoryFor` patterns of those names, and
+  `patterns` ships none of them -- the AU profile carries only `au_acn` and
+  `au_phone_intl`. The cloud detects all three. This is a recall gap no SDK can
+  close from the bundle; the six parity cases it costs are recorded in the
+  fixture as `BUNDLE GAP`.
+- 3210 tests pass (2451 before this release).
+
 ## [0.26.1] - 2026-09-02
 
 ### Fixed

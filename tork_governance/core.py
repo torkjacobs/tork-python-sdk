@@ -24,7 +24,7 @@ import time
 
 from .detectors.pii_patterns import PIIDetector as _RegionalPIIDetector
 
-__version__ = "0.26.1"
+__version__ = "0.27.0"
 
 
 def _sdk_version() -> str:
