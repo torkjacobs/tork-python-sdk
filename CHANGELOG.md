@@ -5,6 +5,32 @@ All notable changes to the Tork Governance Python SDK will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.28.0] - 2026-10-03
+
+### Added
+- **Agent telemetry on the attestation request.** `govern(agent_id=..., agent_role=...,
+  session_id=..., session_turn=...)` already accepted these and kept them on the local
+  receipt, but they were never sent. When an `api_key` is set, the fields that are set
+  are now included in the `POST /api/v1/attestations` body; unset fields are omitted, so a
+  call that passes none is byte-identical to before. They are not added to the canonical
+  JSON, so the fingerprint contract is unchanged. `session_turn` must be an `int`
+  (`TypeError` otherwise; `bool` is rejected).
+- `tests/test_pii_per_type_examples.py`: every declared PII type, in both the basic
+  detector (10) and the regional detector (44), has a positive example it must flag and a
+  negative example it must not. The tables are checked against the enums, so a type added
+  without a case fails.
+- `tests/test_agent_telemetry_fields.py`.
+
+### Changed
+- Declared PII types audited against live patterns: all 10 basic and all 44 regional
+  types have a working pattern. None removed in this release (the three basic and five
+  regional gaps were fixed in 0.26.0 and 0.26.1).
+
+### Notes
+- The attestation endpoint's field set is fixed server-side. If it rejects unknown keys,
+  reporting for calls that set these fields will return `report.succeeded == False`; the
+  local decision and receipt are unaffected. Not verified against production in this release.
+
 ## [0.27.0] - 2026-09-25
 
 ### Added
