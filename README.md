@@ -369,6 +369,28 @@ print(report.reason)      # Why it hasn't succeeded (or its current status)
 report.wait(timeout=5)
 ```
 
+### Agent telemetry (optional)
+
+`govern()` accepts four optional fields that identify who is calling and where in
+a conversation: `agent_id`, `agent_role`, `session_id` and `session_turn` (an
+`int`; a non-int raises `TypeError`).
+
+```python
+result = tork.govern(
+    "Summarise the customer record",
+    agent_id="agent-7",
+    agent_role="worker",
+    session_id="sess-123",
+    session_turn=3,
+)
+result.session_context.session_turn  # 3, also on result.receipt.session_context
+```
+
+When an `api_key` is configured, the fields that are set are sent with the
+attestation request; fields you leave out are omitted from it entirely, so a call
+that passes none sends exactly what it sent before. They are not part of the
+canonical JSON or the fingerprint.
+
 ## Scanning tool results
 
 A tool result returned by an MCP server — or any external system you do not control — is untrusted input that is about to be appended to a model's context. `Tork.scan_tool_result()` scans it first, on-device, for PII and prompt injection:

@@ -24,7 +24,7 @@ import time
 
 from .detectors.pii_patterns import PIIDetector as _RegionalPIIDetector
 
-__version__ = "0.27.0"
+__version__ = "0.28.0"
 
 
 def _sdk_version() -> str:
@@ -593,6 +593,7 @@ def _attempt_attestation_once(
     salt: str,
     fingerprint: str,
     decided_at: str,
+    session_context: Optional["SessionContext"] = None,
 ) -> AttestationReport:
     """POST a metadata-only attestation to tork.network, once.
 
@@ -607,14 +608,22 @@ def _attempt_attestation_once(
     fingerprint salt, the fingerprint, and decided_at. No input text, output
     text, or PII value is ever included.
     """
-    body = json.dumps({
+    body_dict = {
         "client_event_id": client_event_id,
         "action": verdict,
         "canonical_json": canonical_json_str,
         "fingerprint_salt": salt,
         "fingerprint": fingerprint,
         "decided_at": decided_at,
-    }).encode("utf-8")
+    }
+    # Optional agent telemetry: sent only when set, omitted otherwise, so a
+    # call that passes none produces a byte-identical request to before.
+    if session_context is not None:
+        for key in ("agent_id", "agent_role", "session_id", "session_turn"):
+            value = getattr(session_context, key)
+            if value is not None:
+                body_dict[key] = value
+    body = json.dumps(body_dict).encode("utf-8")
 
     request = urllib.request.Request(
         ATTESTATIONS_ENDPOINT,
@@ -948,6 +957,11 @@ class Tork:
         Returns:
             GovernanceResult with action, output, PII info, and receipt
         """
+        if session_turn is not None and (
+            isinstance(session_turn, bool) or not isinstance(session_turn, int)
+        ):
+            raise TypeError("session_turn must be an int (1, 2, 3...) or None")
+
         start_time = time.time_ns()
 
         # Detect PII -- regional by default (DECIDED-SDK-REGIONAL-DETECTOR-
@@ -1004,6 +1018,7 @@ class Tork:
             pii_types=[t.value for t in pii.types],
             pii_count=pii.count,
             client_event_id=receipt.receipt_id,
+            session_context=session_context,
         )
 
         return GovernanceResult(
@@ -1024,6 +1039,7 @@ class Tork:
         pii_types: List[str],
         pii_count: int,
         client_event_id: str,
+        session_context: Optional[SessionContext] = None,
     ) -> AttestationReport:
         """Optional metadata-only reporting to tork.network, shared by
         govern() and scan_tool_result(). The local decision is always
@@ -1078,6 +1094,7 @@ class Tork:
                 salt=salt,
                 fingerprint=fingerprint,
                 decided_at=decided_at,
+                session_context=session_context,
             ),
             daemon=True,
             name="tork-attestation-report",
